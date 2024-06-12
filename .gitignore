@@ -11,16 +11,9 @@
 # Build data
 .env
 *.lock
-/src/Type.php
-/src/Config.php
-/src/Settings.php
-/src/Type/*
 /public/
 /var/
-/build/
-/*.php
-/*.twig
-/*.latte
+/index.php
 
 # Node
 /node_modules/
