@@ -1,6 +1,27 @@
-composer.phar
-/vendor/
+# PHPStorm
+/.idea/
 
-# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
-# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
-# composer.lock
+# VSCodeish
+*.code-workspace
+
+# Composer
+/vendor/
+/composer.phar
+
+# Build data
+.env
+*.lock
+/src/Type.php
+/src/Config.php
+/src/Settings.php
+/src/Type/*
+/public/
+/var/
+/build/
+/*.php
+/*.twig
+/*.latte
+
+# Node
+/node_modules/
+package-lock.json
