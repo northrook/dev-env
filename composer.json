@@ -25,7 +25,6 @@
     "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
     "symfony/deprecation-contracts": "@stable",
-    "northrook/core": "dev-main",
-    "northrook/support": "dev-main"
+    "northrook/core": "dev-main"
   }
 }

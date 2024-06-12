@@ -7,12 +7,13 @@ namespace Northrook;
 use Composer\Autoload\ClassLoader;
 use JetBrains\PhpStorm\ExpectedValues;
 use Northrook\Core\Env;
-use Northrook\Support\Str;
+
+// use Northrook\Support\Str;
 use Symfony\Component\ErrorHandler\Debug;
 
-function cacheDir() : string {
-    return sys_get_temp_dir() . '/' . Str::key( $_SERVER[ 'HTTP_HOST' ] ?? 'dev' );
-}
+// function cacheDir() : string {
+//     return sys_get_temp_dir() . '/' . Str::key( $_SERVER[ 'HTTP_HOST' ] ?? 'dev' );
+// }
 
 final class DevelopmentEnvironment
 {
@@ -41,14 +42,16 @@ final class DevelopmentEnvironment
         public bool $echoTitle = true,
         public bool $echoStyles = true,
     ) {
-        new Env( $env, $debug );
-
-        $this->cacheDir   = Str::normalizePath( $cacheDir ?? cacheDir() );
-        $this->projectDir = $projectDir ?Str::normalizePath( $projectDir ) : $projectDir;
 
         if ( $this->errorHandler ) {
             Debug::enable();
         }
+
+        new Env( $env, $debug );
+
+        $this->cacheDir   = $this->normalizePath( $cacheDir );
+        $this->projectDir = $this->normalizePath( $projectDir );
+
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
@@ -86,5 +89,60 @@ final class DevelopmentEnvironment
                 }
             </style>
         STYLE;
+    }
+
+
+    /**
+     * Normalise a `string`, assuming it is a `path`.
+     *
+     * - Removes repeated slashes.
+     * - Normalises slashes to system separator.
+     * - Prevents backtracking.
+     * - No validation is performed.
+     *
+     * @param ?string  $string  The string to normalize.
+     *
+     * @return ?string
+     */
+    private function normalizePath(
+        ?string $string,
+        bool    $allowFilePath = false,
+    ) : ?string {
+
+        if ( !$string ) {
+            return null;
+        }
+
+        $string = strtolower( str_replace( "\\", "/", $string ) );
+
+        if ( str_contains( $string, '/' ) ) {
+
+            $path = [];
+
+            foreach ( array_filter( explode( '/', $string ) ) as $part ) {
+                if ( $part === '..' && $path && end( $path ) !== '..' ) {
+                    array_pop( $path );
+                }
+                elseif ( $part !== '.' ) {
+                    $path[] = trim( $part );
+                }
+            }
+
+            $path = implode( separator : DIRECTORY_SEPARATOR, array : $path );
+        }
+        else {
+            $path = $string;
+        }
+
+        $extension = pathinfo( $path, PATHINFO_EXTENSION );
+
+        if ( $extension && !$allowFilePath ) {
+            throw new \InvalidArgumentException(
+                "Invalid path: {$path}.\n\nFile path not allowed.\n\nDirectory path required.",
+            );
+        }
+
+        // Only append a directory separator if the path is not a file
+        return $extension ? $path : $path . DIRECTORY_SEPARATOR;
     }
 }
