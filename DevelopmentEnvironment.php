@@ -72,8 +72,8 @@ final class DevelopmentEnvironment
 
         new Env( $env, $debug );
 
-        $this->cacheDir   = $this->normalizePath( $cacheDir );
-        $this->projectDir = $this->normalizePath( $projectDir );
+        $this->cacheDir   = normalizeRealPath( $cacheDir );
+        $this->projectDir = normalizeRealPath( $projectDir );
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
@@ -129,28 +129,5 @@ final class DevelopmentEnvironment
                 }
             </style>
         STYLE;
-    }
-
-
-    /**
-     * Normalise a `string`, assuming it is a `path`.
-     *
-     * - Removes repeated slashes.
-     * - Normalises slashes to system separator.
-     * - Prevents backtracking.
-     * - No validation is performed.
-     *
-     * @param string  $string  The string to normalize.
-     *
-     * @return string
-     */
-    private function normalizePath(
-        string $string,
-    ) : string {
-        $normalize = str_replace( [ '\\', '/' ], DIRECTORY_SEPARATOR, $string );
-        $exploded  = explode( DIRECTORY_SEPARATOR, $normalize );
-        $path      = implode( DIRECTORY_SEPARATOR, array_filter( $exploded ) );
-
-        return ( realpath( $path ) ?: $path ) . DIRECTORY_SEPARATOR;
     }
 }
