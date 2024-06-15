@@ -13,7 +13,7 @@ use Symfony\Component\ErrorHandler\Debug;
 final class DevelopmentEnvironment
 {
 
-    public bool $dumpOnExit = true;
+    public static bool $dumpOnExit = true;
 
     public readonly string          $title;
     public readonly ?string         $cacheDir;
@@ -58,7 +58,7 @@ final class DevelopmentEnvironment
                         $logs[ $key ] = $log;
                     }
 
-                    if ( $app->dumpOnExit ) {
+                    if ( $app::$dumpOnExit ) {
                         dump( $app );
                     }
                     if ( $logs ) {
@@ -87,7 +87,13 @@ final class DevelopmentEnvironment
 
     }
 
+    public function dumpOnExit( bool $bool = true ) : DevelopmentEnvironment {
+        $this::$dumpOnExit = $bool;
+        return $this;
+    }
+
     public function set( $property ) : DevelopmentEnvironment {
+
 
         if ( is_object( $property ) ) {
             $propertyName = lcfirst( substr( $property::class, strpos( $property::class, '\\' ) + 1 ) );
