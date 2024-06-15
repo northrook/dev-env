@@ -5,16 +5,20 @@ declare( strict_types = 1 );
 namespace Northrook;
 
 use Northrook\Core\Env;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Symfony\Component\ErrorHandler\BufferingLogger;
 use Symfony\Component\ErrorHandler\Debug;
 
 final class DevelopmentEnvironment
 {
 
-    public readonly string       $title;
-    public readonly ?string      $cacheDir;
-    public readonly ?string      $projectDir;
-    public readonly CacheManager $cacheManager;
-    public readonly AssetManager $assetManager;
+    public readonly string          $title;
+    public readonly ?string         $cacheDir;
+    public readonly ?string         $projectDir;
+    public readonly LoggerInterface $logger;
+    public readonly CacheManager    $cacheManager;
+    public readonly AssetManager    $assetManager;
 
     /**
      * @param null|string  $title
@@ -27,18 +31,23 @@ final class DevelopmentEnvironment
      * @param bool         $echoStyles
      */
     public function __construct(
-        ?string     $title = null,
-        string      $env = Env::DEVELOPMENT,
-        bool        $debug = true,
-        ?string     $cacheDir = null,
-        ?string     $projectDir = null,
-        public bool $errorHandler = true,
-        public bool $echoTitle = true,
-        public bool $echoStyles = true,
+        ?string          $title = null,
+        string           $env = Env::DEVELOPMENT,
+        bool             $debug = true,
+        ?string          $cacheDir = null,
+        ?string          $projectDir = null,
+        public bool      $errorHandler = true,
+        public bool      $echoTitle = true,
+        public bool      $echoStyles = true,
+        ?LoggerInterface $logger = null,
     ) {
+
+        $this->logger = $logger ?? new BufferingLogger() ?? new NullLogger();
 
         if ( $this->errorHandler ) {
             Debug::enable();
+
+            register_shutdown_function( 'dump', $this->logger->cleanLogs() );
         }
 
         new Env( $env, $debug );
