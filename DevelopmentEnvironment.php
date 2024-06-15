@@ -18,9 +18,10 @@ use Symfony\Component\ErrorHandler\Debug;
 final class DevelopmentEnvironment
 {
 
-    public readonly string  $title;
-    public readonly ?string $cacheDir;
-    public readonly ?string $projectDir;
+    public readonly string       $title;
+    public readonly ?string      $cacheDir;
+    public readonly ?string      $projectDir;
+    public readonly CacheManager $cacheManager;
 
     /**
      * @param null|string  $title
@@ -41,6 +42,7 @@ final class DevelopmentEnvironment
         public bool $errorHandler = true,
         public bool $echoTitle = true,
         public bool $echoStyles = true,
+        bool        $cacheManager = true,
     ) {
 
         if ( $this->errorHandler ) {
@@ -63,6 +65,19 @@ final class DevelopmentEnvironment
             $this->echoStyles();
         }
 
+        if ( $cacheManager && class_exists( 'Northrook\CacheManager') ) {
+            $this->cacheManager = new CacheManager(
+                cacheDirectory:  $this->cacheDir,
+                assetDirectory : $this->projectDir . '/public',
+            );
+        }
+
+    }
+
+    public function set( $property ) : void {
+        if ( $property instanceof CacheManager && !isset( $this->cacheManager ) ) {
+            $this->cacheManager = $property;
+        }
     }
 
     private function echoTitle() : void {
@@ -100,49 +115,17 @@ final class DevelopmentEnvironment
      * - Prevents backtracking.
      * - No validation is performed.
      *
-     * @param ?string  $string  The string to normalize.
+     * @param string  $string  The string to normalize.
      *
-     * @return ?string
+     * @return string
      */
     private function normalizePath(
-        ?string $string,
-        bool    $allowFilePath = false,
-    ) : ?string {
+        string $string,
+    ) : string {
+        $normalize = str_replace( [ '\\', '/' ], DIRECTORY_SEPARATOR, $string );
+        $exploded  = explode( DIRECTORY_SEPARATOR, $normalize );
+        $path      = implode( DIRECTORY_SEPARATOR, array_filter( $exploded ) );
 
-        if ( !$string ) {
-            return null;
-        }
-
-        $string = strtolower( str_replace( "\\", "/", $string ) );
-
-        if ( str_contains( $string, '/' ) ) {
-
-            $path = [];
-
-            foreach ( array_filter( explode( '/', $string ) ) as $part ) {
-                if ( $part === '..' && $path && end( $path ) !== '..' ) {
-                    array_pop( $path );
-                }
-                elseif ( $part !== '.' ) {
-                    $path[] = trim( $part );
-                }
-            }
-
-            $path = implode( separator : DIRECTORY_SEPARATOR, array : $path );
-        }
-        else {
-            $path = $string;
-        }
-
-        $extension = pathinfo( $path, PATHINFO_EXTENSION );
-
-        if ( $extension && !$allowFilePath ) {
-            throw new \InvalidArgumentException(
-                "Invalid path: {$path}.\n\nFile path not allowed.\n\nDirectory path required.",
-            );
-        }
-
-        // Only append a directory separator if the path is not a file
-        return $extension ? $path : $path . DIRECTORY_SEPARATOR;
+        return ( realpath( $path ) ?: $path ) . DIRECTORY_SEPARATOR;
     }
 }
