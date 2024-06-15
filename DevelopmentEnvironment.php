@@ -13,6 +13,8 @@ use Symfony\Component\ErrorHandler\Debug;
 final class DevelopmentEnvironment
 {
 
+    public bool $dumpOnExit = true;
+
     public readonly string          $title;
     public readonly ?string         $cacheDir;
     public readonly ?string         $projectDir;
@@ -21,14 +23,14 @@ final class DevelopmentEnvironment
     public readonly AssetManager    $assetManager;
 
     /**
-     * @param null|string           $title
-     * @param string                $env  = ['dev', 'prod', 'staging'][$any]
-     * @param bool                  $debug
-     * @param null|string           $cacheDir
-     * @param null|string           $projectDir
-     * @param bool                  $errorHandler
-     * @param bool                  $echoTitle
-     * @param bool                  $echoStyles
+     * @param null|string       $title
+     * @param string            $env  = ['dev', 'prod', 'staging'][$any]
+     * @param bool              $debug
+     * @param null|string       $cacheDir
+     * @param null|string       $projectDir
+     * @param bool              $errorHandler
+     * @param bool              $echoTitle
+     * @param bool              $echoStyles
      * @param ?LoggerInterface  $logger
      */
     public function __construct(
@@ -46,18 +48,24 @@ final class DevelopmentEnvironment
         $this->logger = $logger ?? new BufferingLogger() ?? new NullLogger();
 
         if ( $this->errorHandler ) {
-            $logger = $this->logger;
+            $app = $this;
             register_shutdown_function(
-                static function () use ( $logger ) {
+                static function () use ( $app ) {
                     $logs = [];
 
-                    foreach ( $logger->cleanLogs() as $index => $log ) {
+                    foreach ( $app->logger->cleanLogs() as $index => $log ) {
                         $key          = " $index [{$log[0]}] {$log[1]}";
                         $logs[ $key ] = $log;
                     }
 
-                    dump( $logs );
+                    if ( $app->dumpOnExit ) {
+                        dump( $app );
+                    }
+                    if ( $logs ) {
+                        dump( $logs );
+                    }
                 },
+
             );
             Debug::enable();
         }
@@ -66,7 +74,6 @@ final class DevelopmentEnvironment
 
         $this->cacheDir   = $this->normalizePath( $cacheDir );
         $this->projectDir = $this->normalizePath( $projectDir );
-
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
