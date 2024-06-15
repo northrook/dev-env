@@ -21,14 +21,15 @@ final class DevelopmentEnvironment
     public readonly AssetManager    $assetManager;
 
     /**
-     * @param null|string  $title
-     * @param string       $env  = ['dev', 'prod', 'staging'][$any]
-     * @param bool         $debug
-     * @param null|string  $cacheDir
-     * @param null|string  $projectDir
-     * @param bool         $errorHandler
-     * @param bool         $echoTitle
-     * @param bool         $echoStyles
+     * @param null|string           $title
+     * @param string                $env  = ['dev', 'prod', 'staging'][$any]
+     * @param bool                  $debug
+     * @param null|string           $cacheDir
+     * @param null|string           $projectDir
+     * @param bool                  $errorHandler
+     * @param bool                  $echoTitle
+     * @param bool                  $echoStyles
+     * @param ?LoggerInterface  $logger
      */
     public function __construct(
         ?string          $title = null,
@@ -44,10 +45,22 @@ final class DevelopmentEnvironment
 
         $this->logger = $logger ?? new BufferingLogger() ?? new NullLogger();
 
+        $this->logger->info( 'Cache Manager initialised.' );
         if ( $this->errorHandler ) {
-            Debug::enable();
+            $logger = $this->logger;
+            register_shutdown_function(
+                static function () use ( $logger ) {
+                    $logs = [];
 
-            register_shutdown_function( 'dump', $this->logger->cleanLogs() );
+                    foreach ( $logger->cleanLogs() as $index => $log ) {
+                        $key          = " $index [{$log[0]}] {$log[1]}";
+                        $logs[ $key ] = $log;
+                    }
+
+                    dump( $logs );
+                },
+            );
+            Debug::enable();
         }
 
         new Env( $env, $debug );
