@@ -25,7 +25,6 @@ final class DevelopmentEnvironment
      * @param bool         $errorHandler
      * @param bool         $echoTitle
      * @param bool         $echoStyles
-     * @param bool         $cacheManager
      */
     public function __construct(
         ?string     $title = null,
@@ -36,7 +35,6 @@ final class DevelopmentEnvironment
         public bool $errorHandler = true,
         public bool $echoTitle = true,
         public bool $echoStyles = true,
-        bool        $cacheManager = true,
     ) {
 
         if ( $this->errorHandler ) {
@@ -57,13 +55,6 @@ final class DevelopmentEnvironment
 
         if ( $this->echoStyles ) {
             $this->echoStyles();
-        }
-
-        if ( $cacheManager && class_exists( 'Northrook\CacheManager' ) ) {
-            $this->cacheManager = new CacheManager(
-                cacheDirectory : $this->cacheDir,
-                assetDirectory : $this->projectDir . '/public',
-            );
         }
 
     }
