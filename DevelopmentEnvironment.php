@@ -1,19 +1,11 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 declare( strict_types = 1 );
 
 namespace Northrook;
 
-use Composer\Autoload\ClassLoader;
-use JetBrains\PhpStorm\ExpectedValues;
 use Northrook\Core\Env;
-
-// use Northrook\Support\Str;
 use Symfony\Component\ErrorHandler\Debug;
-
-// function cacheDir() : string {
-//     return sys_get_temp_dir() . '/' . Str::key( $_SERVER[ 'HTTP_HOST' ] ?? 'dev' );
-// }
 
 final class DevelopmentEnvironment
 {
@@ -22,6 +14,7 @@ final class DevelopmentEnvironment
     public readonly ?string      $cacheDir;
     public readonly ?string      $projectDir;
     public readonly CacheManager $cacheManager;
+    public readonly AssetManager $assetManager;
 
     /**
      * @param null|string  $title
@@ -32,6 +25,7 @@ final class DevelopmentEnvironment
      * @param bool         $errorHandler
      * @param bool         $echoTitle
      * @param bool         $echoStyles
+     * @param bool         $cacheManager
      */
     public function __construct(
         ?string     $title = null,
@@ -58,16 +52,16 @@ final class DevelopmentEnvironment
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
         if ( $this->echoTitle ) {
-            $this->echoTitle( $title );
+            $this->echoTitle();
         }
 
         if ( $this->echoStyles ) {
             $this->echoStyles();
         }
 
-        if ( $cacheManager && class_exists( 'Northrook\CacheManager') ) {
+        if ( $cacheManager && class_exists( 'Northrook\CacheManager' ) ) {
             $this->cacheManager = new CacheManager(
-                cacheDirectory:  $this->cacheDir,
+                cacheDirectory : $this->cacheDir,
                 assetDirectory : $this->projectDir . '/public',
             );
         }
@@ -75,9 +69,20 @@ final class DevelopmentEnvironment
     }
 
     public function set( $property ) : void {
-        if ( $property instanceof CacheManager && !isset( $this->cacheManager ) ) {
-            $this->cacheManager = $property;
+
+        if ( is_object( $property ) ) {
+            $propertyName = lcfirst( substr( $property::class, strpos( $property::class, '\\' ) + 1 ) );
+            if ( !isset( $this->$propertyName ) ) {
+                $this->$propertyName = $property;
+            }
         }
+
+        // dump(
+        //     $property,
+        // );
+        // if ( $property instanceof CacheManager && !isset( $this->cacheManager ) ) {
+        //     $this->cacheManager = $property;
+        // }
     }
 
     private function echoTitle() : void {
