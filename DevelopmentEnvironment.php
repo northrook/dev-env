@@ -59,7 +59,7 @@ final class DevelopmentEnvironment
 
     }
 
-    public function set( $property ) : void {
+    public function set( $property ) : DevelopmentEnvironment {
 
         if ( is_object( $property ) ) {
             $propertyName = lcfirst( substr( $property::class, strpos( $property::class, '\\' ) + 1 ) );
@@ -68,12 +68,7 @@ final class DevelopmentEnvironment
             }
         }
 
-        // dump(
-        //     $property,
-        // );
-        // if ( $property instanceof CacheManager && !isset( $this->cacheManager ) ) {
-        //     $this->cacheManager = $property;
-        // }
+        return $this;
     }
 
     private function echoTitle() : void {
