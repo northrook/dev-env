@@ -45,7 +45,6 @@ final class DevelopmentEnvironment
 
         $this->logger = $logger ?? new BufferingLogger() ?? new NullLogger();
 
-        $this->logger->info( 'Cache Manager initialised.' );
         if ( $this->errorHandler ) {
             $logger = $this->logger;
             register_shutdown_function(
