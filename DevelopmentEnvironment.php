@@ -13,6 +13,10 @@ use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+/**
+ * @property-read AssetManager $assetManager
+ * @property-read CacheManager $cacheManager
+ */
 final class DevelopmentEnvironment
 {
 
@@ -22,8 +26,8 @@ final class DevelopmentEnvironment
     protected readonly AssetManager $assetManager;
 
     public readonly string          $title;
-    public readonly ?string         $cacheDir;
     public readonly ?string         $projectDir;
+    public readonly ?string         $cacheDir;
     public readonly RequestStack    $requestStack;
     public readonly Request         $currentRequest;
     public readonly LoggerInterface $logger;
@@ -44,13 +48,13 @@ final class DevelopmentEnvironment
         ?string          $title = null,
         string           $env = Env::DEVELOPMENT,
         bool             $debug = true,
-        ?string          $cacheDir = null,
         ?string          $projectDir = null,
+        ?string          $cacheDir = null,
+        ?LoggerInterface $logger = null,
+        ?RequestStack    $requestStack = null,
         public bool      $errorHandler = true,
         public bool      $echoTitle = true,
         public bool      $echoStyles = true,
-        ?LoggerInterface $logger = null,
-        ?RequestStack    $requestStack = null,
     ) {
 
         $this->logger         = $logger ?? new BufferingLogger() ?? new NullLogger();
@@ -82,8 +86,8 @@ final class DevelopmentEnvironment
 
         new Env( $env, $debug );
 
-        $this->cacheDir   = normalizeRealPath( $cacheDir );
-        $this->projectDir = normalizeRealPath( $projectDir );
+        $this->projectDir = normalizeRealPath( $projectDir ?? getcwd() );
+        $this->cacheDir   = normalizeRealPath( $cacheDir ?? $this->projectDir . '/var/cache' );
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
@@ -95,25 +99,15 @@ final class DevelopmentEnvironment
             $this->echoStyles();
         }
 
+        unset( $title, $env, $debug, $projectDir, $cacheDir, $logger, $requestStack );
     }
 
 
     public function __get( string $property ) {
+
         return match ( $property ) {
-            'cacheManager'   => $this->cacheManager = new CacheManager(
-                cacheDirectory    : $this->projectDir . '/var/cache',
-                manifestDirectory : $this->projectDir . '/assets',
-                logger            : $this->logger,
-            ),
-            'assetManager'   => $this->assetManager = new AssetManager(
-                publicRoot   : $this->projectDir . '/public',
-                publicAssets : $this->projectDir . '/public/assets',
-                cache        : $this->cacheManager->getAdapter( 'assetCache', ),
-                manifest     : new ManifestCacheAlias( 'assetManager' ),
-            ),
-            'requestStack'   => $this->requestStack,
-            'currentRequest' => $this->currentRequest,
-            'logger'         => $this->logger,
+            'cacheManager' => $this->newCacheManager(),
+            'assetManager' => $this->newAssetManager(),
         };
     }
 
@@ -134,7 +128,9 @@ final class DevelopmentEnvironment
      * @throws \LogicException
      */
     public function __set( string $name, mixed $value ) {
-        throw new \LogicException( "Cannot set property '$name', " . $this::class . " does not allow setting arbitrary properties." );
+        throw new \LogicException(
+            "Cannot set property '$name', " . $this::class . " does not allow setting arbitrary properties.",
+        );
     }
 
     public function dumpOnExit( bool $bool = true ) : DevelopmentEnvironment {
@@ -151,7 +147,8 @@ final class DevelopmentEnvironment
             }
             if ( !isset( $this->$propertyName ) ) {
                 $this->$propertyName = $property;
-            } else {
+            }
+            else {
                 dump( "$propertyName has already been set" );
             }
         }
@@ -193,5 +190,28 @@ final class DevelopmentEnvironment
         $requestStack = new RequestStack();
         $requestStack->push( Request::createFromGlobals() );
         return $requestStack;
+    }
+
+    private function newCacheManager() : CacheManager {
+        return new CacheManager(
+            cacheDirectory    : $this->projectDir . '/var/cache',
+            manifestDirectory : $this->projectDir . '/assets',
+            logger            : $this->logger,
+        );
+    }
+
+
+    private function newAssetManager() : AssetManager {
+
+        if ( !isset( $this->cacheManager ) ) {
+            $this->cacheManager = $this->newCacheManager();
+        }
+
+        return new AssetManager(
+            publicRoot   : $this->projectDir . '/public',
+            publicAssets : $this->projectDir . '/public/assets',
+            cache        : $this->cacheManager->getAdapter( 'assetCache', ),
+            manifest     : new \Northrook\Cache\ManifestCache( 'assetManager' ),
+        );
     }
 }
