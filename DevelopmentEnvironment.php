@@ -9,6 +9,8 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\ErrorHandler\BufferingLogger;
 use Symfony\Component\ErrorHandler\Debug;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 final class DevelopmentEnvironment
 {
@@ -18,20 +20,23 @@ final class DevelopmentEnvironment
     public readonly string          $title;
     public readonly ?string         $cacheDir;
     public readonly ?string         $projectDir;
+    public readonly RequestStack    $requestStack;
+    public readonly Request         $currentRequest;
     public readonly LoggerInterface $logger;
     public readonly CacheManager    $cacheManager;
     public readonly AssetManager    $assetManager;
 
     /**
-     * @param null|string       $title
-     * @param string            $env  = ['dev', 'prod', 'staging'][$any]
-     * @param bool              $debug
-     * @param null|string       $cacheDir
-     * @param null|string       $projectDir
-     * @param bool              $errorHandler
-     * @param bool              $echoTitle
-     * @param bool              $echoStyles
-     * @param ?LoggerInterface  $logger
+     * @param null|string        $title
+     * @param string             $env  = ['dev', 'prod', 'staging'][$any]
+     * @param bool               $debug
+     * @param null|string        $cacheDir
+     * @param null|string        $projectDir
+     * @param bool               $errorHandler
+     * @param bool               $echoTitle
+     * @param bool               $echoStyles
+     * @param ?LoggerInterface   $logger
+     * @param ?RequestStack  $requestStack
      */
     public function __construct(
         ?string          $title = null,
@@ -43,9 +48,12 @@ final class DevelopmentEnvironment
         public bool      $echoTitle = true,
         public bool      $echoStyles = true,
         ?LoggerInterface $logger = null,
+        ?RequestStack    $requestStack = null,
     ) {
 
-        $this->logger = $logger ?? new BufferingLogger() ?? new NullLogger();
+        $this->logger       = $logger ?? new BufferingLogger() ?? new NullLogger();
+        $this->requestStack = $requestStack ?? $this->newRequestStack();
+        $this->currentRequest = $this->requestStack->getCurrentRequest();
 
         if ( $this->errorHandler ) {
             $app = $this;
@@ -106,6 +114,7 @@ final class DevelopmentEnvironment
     }
 
     private function echoTitle() : void {
+        echo "<title>{$this->title}</title>";
         echo "<div style='display: block; font-family: monospace; opacity: .5'>{$this->title}</div>";
     }
 
@@ -118,7 +127,7 @@ final class DevelopmentEnvironment
                     background-color: #1f2937;
                 }
                 body pre.sf-dump {
-                    background-color: #15191E;
+                    background-color: #15191E80;
                 }
                 body pre.sf-dump .sf-dump-ellipsis {
                     direction: rtl;
@@ -129,5 +138,11 @@ final class DevelopmentEnvironment
                 }
             </style>
         STYLE;
+    }
+
+    private function newRequestStack() : RequestStack {
+        $requestStack = new RequestStack();
+        $requestStack->push( Request::createFromGlobals() );
+        return $requestStack;
     }
 }
