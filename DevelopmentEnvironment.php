@@ -5,6 +5,7 @@ declare( strict_types = 1 );
 namespace Northrook;
 
 use Northrook\Core\Env;
+use Northrook\Core\Trait\PropertyAccessor;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\ErrorHandler\BufferingLogger;
@@ -17,26 +18,27 @@ final class DevelopmentEnvironment
 
     public static bool $dumpOnExit = true;
 
+    protected readonly CacheManager $cacheManager;
+    protected readonly AssetManager $assetManager;
+
     public readonly string          $title;
     public readonly ?string         $cacheDir;
     public readonly ?string         $projectDir;
     public readonly RequestStack    $requestStack;
     public readonly Request         $currentRequest;
     public readonly LoggerInterface $logger;
-    public readonly CacheManager    $cacheManager;
-    public readonly AssetManager    $assetManager;
 
     /**
-     * @param null|string        $title
-     * @param string             $env  = ['dev', 'prod', 'staging'][$any]
-     * @param bool               $debug
-     * @param null|string        $cacheDir
-     * @param null|string        $projectDir
-     * @param bool               $errorHandler
-     * @param bool               $echoTitle
-     * @param bool               $echoStyles
-     * @param ?LoggerInterface   $logger
-     * @param ?RequestStack  $requestStack
+     * @param null|string       $title
+     * @param string            $env  = ['dev', 'prod', 'staging'][$any]
+     * @param bool              $debug
+     * @param null|string       $cacheDir
+     * @param null|string       $projectDir
+     * @param bool              $errorHandler
+     * @param bool              $echoTitle
+     * @param bool              $echoStyles
+     * @param ?LoggerInterface  $logger
+     * @param ?RequestStack     $requestStack
      */
     public function __construct(
         ?string          $title = null,
@@ -51,8 +53,8 @@ final class DevelopmentEnvironment
         ?RequestStack    $requestStack = null,
     ) {
 
-        $this->logger       = $logger ?? new BufferingLogger() ?? new NullLogger();
-        $this->requestStack = $requestStack ?? $this->newRequestStack();
+        $this->logger         = $logger ?? new BufferingLogger() ?? new NullLogger();
+        $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
         if ( $this->errorHandler ) {
@@ -95,18 +97,62 @@ final class DevelopmentEnvironment
 
     }
 
+
+    public function __get( string $property ) {
+        return match ( $property ) {
+            'cacheManager'   => $this->cacheManager = new CacheManager(
+                cacheDirectory    : $this->projectDir . '/var/cache',
+                manifestDirectory : $this->projectDir . '/assets',
+                logger            : $this->logger,
+            ),
+            'assetManager'   => $this->assetManager = new AssetManager(
+                publicRoot   : $this->projectDir . '/public',
+                publicAssets : $this->projectDir . '/public/assets',
+                cache        : $this->cacheManager->getAdapter( 'assetCache', ),
+                manifest     : new ManifestCacheAlias( 'assetManager' ),
+            ),
+            'requestStack'   => $this->requestStack,
+            'currentRequest' => $this->currentRequest,
+            'logger'         => $this->logger,
+        };
+    }
+
+    /**
+     * Check if the property exists.
+     *
+     * @param string  $property
+     *
+     * @return bool
+     */
+    public function __isset( string $property ) : bool {
+        return isset( $this->$property );
+    }
+
+    /**
+     * The {@see PropertyAccessor} trait does not allow setting properties.
+     *
+     * @throws \LogicException
+     */
+    public function __set( string $name, mixed $value ) {
+        throw new \LogicException( "Cannot set property '$name', " . $this::class . " does not allow setting arbitrary properties." );
+    }
+
     public function dumpOnExit( bool $bool = true ) : DevelopmentEnvironment {
         $this::$dumpOnExit = $bool;
         return $this;
     }
 
     public function set( $property ) : DevelopmentEnvironment {
-
-
         if ( is_object( $property ) ) {
-            $propertyName = lcfirst( substr( $property::class, strpos( $property::class, '\\' ) + 1 ) );
+            $propertyName = $property::class;
+            $namespace    = strrpos( $propertyName, '\\' );
+            if ( $namespace !== false ) {
+                $propertyName = lcfirst( substr( $propertyName, ++$namespace ) );
+            }
             if ( !isset( $this->$propertyName ) ) {
                 $this->$propertyName = $property;
+            } else {
+                dump( "$propertyName has already been set" );
             }
         }
 
