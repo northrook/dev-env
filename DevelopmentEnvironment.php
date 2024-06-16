@@ -129,6 +129,9 @@ final class DevelopmentEnvironment
                 body pre.sf-dump {
                     background-color: #15191E80;
                 }
+                body pre.sf-dump .sf-dump-public {
+                    color: #FFFFFF;
+                }
                 body pre.sf-dump .sf-dump-ellipsis {
                     direction: rtl;
                 }
