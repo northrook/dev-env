@@ -22,10 +22,10 @@
   "require": {
     "php": ">=8.2",
     "roave/security-advisories": "dev-latest",
+    "northrook/core": "dev-main",
     "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
     "symfony/deprecation-contracts": "@stable",
-    "northrook/core": "dev-main",
     "symfony/http-kernel": "^7.1"
   }
 }

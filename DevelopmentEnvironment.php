@@ -111,8 +111,8 @@ final class DevelopmentEnvironment
     public function __get( string $property ) {
 
         return match ( $property ) {
-            'cacheManager' => $this->newCacheManager(),
-            'assetManager' => $this->newAssetManager(),
+            'cacheManager' => $this->cacheManager ??= $this->newCacheManager(),
+            'assetManager' => $this->assetManager ??= $this->newAssetManager(),
         };
     }
 
