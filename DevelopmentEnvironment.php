@@ -1,4 +1,8 @@
-<?php /** @noinspection PhpUndefinedClassInspection */
+<?php // dev-env
+
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection ForgottenDebugOutputInspection */
+/** @noinspection PhpUndefinedClassInspection */
 
 declare( strict_types = 1 );
 
@@ -12,6 +16,7 @@ use Symfony\Component\ErrorHandler\BufferingLogger;
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use function Northrook\Core\Functions\normalizePath;
 
 /**
  * @property-read AssetManager $assetManager
@@ -86,8 +91,8 @@ final class DevelopmentEnvironment
 
         new Env( $env, $debug );
 
-        $this->projectDir = normalizeRealPath( $projectDir ?? getcwd() );
-        $this->cacheDir   = normalizeRealPath( $cacheDir ?? $this->projectDir . '/var/cache' );
+        $this->projectDir = normalizePath( $projectDir ?? getcwd() );
+        $this->cacheDir   = normalizePath( $cacheDir ?? $this->projectDir . '/var/cache' );
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
@@ -210,7 +215,7 @@ final class DevelopmentEnvironment
         return new AssetManager(
             publicRoot   : $this->projectDir . '/public',
             publicAssets : $this->projectDir . '/public/assets',
-            cache        : $this->cacheManager->getAdapter( 'assetCache', ),
+            cache        : $this->cacheManager->getAdapter( 'assetCache' ),
             manifest     : new \Northrook\Cache\ManifestCache( 'assetManager' ),
         );
     }
