@@ -19,16 +19,18 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use function Northrook\Core\Functions\normalizePath;
 
 /**
- * @property-read AssetManager $assetManager
- * @property-read CacheManager $cacheManager
+ * @property-read AssetManager   $assetManager
+ * @property-read CacheManager   $cacheManager
+ * @property-read ContentManager $contentManager
  */
 final class DevelopmentEnvironment
 {
 
     public static bool $dumpOnExit = true;
 
-    protected readonly CacheManager $cacheManager;
-    protected readonly AssetManager $assetManager;
+    protected readonly CacheManager   $cacheManager;
+    protected readonly AssetManager   $assetManager;
+    protected readonly ContentManager $contentManager;
 
     public readonly string          $title;
     public readonly ?string         $projectDir;
@@ -68,7 +70,7 @@ final class DevelopmentEnvironment
 
         if ( $this->errorHandler ) {
             register_shutdown_function(
-                 function () {
+                function () {
                     $app  = $this;
                     $logs = [];
 
@@ -172,14 +174,23 @@ final class DevelopmentEnvironment
                     color: #e6f2ff;
                     background-color: #1f2937;
                 }
+                pre.sf-dump, 
+                pre.sf-dump * {
+                font: unset ;
+                }
                 body pre.sf-dump {
                     background-color: #15191E80;
+                    font-size: 15px;
+                    letter-spacing: .05ch;
+                    line-height: 1.5;
+                    font-family: "Dev Workstation", monospace !important;
                 }
                 body pre.sf-dump .sf-dump-public {
                     color: #FFFFFF;
                 }
                 body pre.sf-dump .sf-dump-ellipsis {
                     direction: rtl;
+                    max-width: 35vw;
                 }
                 body xmp, body pre {
                     max-width: 100%;
@@ -203,7 +214,6 @@ final class DevelopmentEnvironment
         );
     }
 
-
     private function newAssetManager() : AssetManager {
 
         if ( !isset( $this->cacheManager ) ) {
@@ -215,6 +225,12 @@ final class DevelopmentEnvironment
             publicAssets : $this->projectDir . '/public/assets',
             cache        : $this->cacheManager->getAdapter( 'assetCache' ),
             manifest     : new \Northrook\Cache\ManifestCache( 'assetManager' ),
+        );
+    }
+
+    private function newContentManager() : ContentManager {
+        return new ContentManager(
+            logger            : $this->logger,
         );
     }
 }
