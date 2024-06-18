@@ -67,9 +67,9 @@ final class DevelopmentEnvironment
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
         if ( $this->errorHandler ) {
-            $app = $this;
             register_shutdown_function(
-                static function () use ( $app ) {
+                 function () {
+                    $app  = $this;
                     $logs = [];
 
                     foreach ( $app->logger->cleanLogs() as $index => $log ) {
@@ -103,8 +103,6 @@ final class DevelopmentEnvironment
         if ( $this->echoStyles ) {
             $this->echoStyles();
         }
-
-        unset( $title, $env, $debug, $projectDir, $cacheDir, $logger, $requestStack );
     }
 
 
