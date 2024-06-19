@@ -16,7 +16,7 @@ use Symfony\Component\ErrorHandler\BufferingLogger;
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use function Northrook\Core\Functions\normalizePath;
+use function Northrook\Core\Function\normalizePath;
 
 /**
  * @property-read AssetManager   $assetManager
@@ -103,7 +103,12 @@ final class DevelopmentEnvironment
         }
 
         if ( $this->echoStyles ) {
-            $this->echoStyles();
+            try {
+                echo '<style>' . file_get_contents( __DIR__ . '/assets/stylesheet.css' ) . '</style>';
+            }
+            catch ( \Exception $exception ) {
+                $this->logger->error( $exception->getMessage() );
+            }
         }
     }
 
@@ -111,8 +116,10 @@ final class DevelopmentEnvironment
     public function __get( string $property ) {
 
         return match ( $property ) {
-            'cacheManager' => $this->cacheManager ??= $this->newCacheManager(),
-            'assetManager' => $this->assetManager ??= $this->newAssetManager(),
+            'cacheManager'   => $this->cacheManager ??= $this->newCacheManager(),
+            'assetManager'   => $this->assetManager ??= $this->newAssetManager(),
+            'contentManager' => $this->contentManager ??= $this->newContentManager(),
+            default          => null
         };
     }
 
@@ -154,7 +161,7 @@ final class DevelopmentEnvironment
                 $this->$propertyName = $property;
             }
             else {
-                dump( "$propertyName has already been set" );
+                $this->logger->warning( "$propertyName has already been set" );
             }
         }
 
@@ -166,39 +173,6 @@ final class DevelopmentEnvironment
         echo "<div style='display: block; font-family: monospace; opacity: .5'>{$this->title}</div>";
     }
 
-    private function echoStyles() : void {
-        echo <<<STYLE
-            <style>
-                body {
-                    font-family: sans-serif;
-                    color: #e6f2ff;
-                    background-color: #1f2937;
-                }
-                pre.sf-dump, 
-                pre.sf-dump * {
-                font: unset ;
-                }
-                body pre.sf-dump {
-                    background-color: #15191E80;
-                    font-size: 15px;
-                    letter-spacing: .05ch;
-                    line-height: 1.5;
-                    font-family: "Dev Workstation", monospace !important;
-                }
-                body pre.sf-dump .sf-dump-public {
-                    color: #FFFFFF;
-                }
-                body pre.sf-dump .sf-dump-ellipsis {
-                    direction: rtl;
-                    max-width: 35vw;
-                }
-                body xmp, body pre {
-                    max-width: 100%;
-                    white-space: pre-wrap;
-                }
-            </style>
-        STYLE;
-    }
 
     private function newRequestStack() : RequestStack {
         $requestStack = new RequestStack();
@@ -230,7 +204,7 @@ final class DevelopmentEnvironment
 
     private function newContentManager() : ContentManager {
         return new ContentManager(
-            logger            : $this->logger,
+            logger : $this->logger,
         );
     }
 }

@@ -1,0 +1,27 @@
+body {
+    font-family: sans-serif;
+    color: #e6f2ff;
+    background-color: #1f2937;
+}
+pre.sf-dump,
+pre.sf-dump * {
+    font: unset ;
+}
+body pre.sf-dump {
+    background-color: #15191E80;
+    font-size: 15px;
+    letter-spacing: .05ch;
+    line-height: 1.5;
+    font-family: "Dev Workstation", monospace !important;
+}
+body pre.sf-dump .sf-dump-public {
+    color: #FFFFFF;
+}
+body pre.sf-dump .sf-dump-ellipsis {
+    direction: rtl;
+    max-width: 35vw;
+}
+body xmp, body pre {
+    max-width: 100%;
+    white-space: pre-wrap;
+}
