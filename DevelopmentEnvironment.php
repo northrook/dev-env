@@ -17,6 +17,7 @@ use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use function Northrook\Core\Function\normalizePath;
+use Northrook\Logger\Log;
 
 /**
  * @property-read AssetManager   $assetManager
@@ -64,34 +65,27 @@ final class DevelopmentEnvironment
         public bool      $echoStyles = true,
     ) {
 
-        $this->logger         = $logger ?? new BufferingLogger() ?? new NullLogger();
-        $this->requestStack   = $requestStack ?? $this->newRequestStack();
-        $this->currentRequest = $this->requestStack->getCurrentRequest();
-
         if ( $this->errorHandler ) {
             register_shutdown_function(
                 function () {
-                    $app  = $this;
-                    $logs = [];
-
-                    foreach ( $app->logger->cleanLogs() as $index => $log ) {
-                        $key          = " $index [{$log[0]}] {$log[1]}";
-                        $logs[ $key ] = $log;
+                    if ( $this::$dumpOnExit ) {
+                        dump( $this );
                     }
 
-                    if ( $app::$dumpOnExit ) {
-                        dump( $app );
-                    }
-                    if ( $logs ) {
+                    if ( $logs = $this->logger->printLogs( false ) ) {
                         dump( $logs );
                     }
                 },
-
             );
             Debug::enable();
         }
 
+        $this->logger         = $logger ?? new Logger() ?? new NullLogger();
+        $this->requestStack   = $requestStack ?? $this->newRequestStack();
+        $this->currentRequest = $this->requestStack->getCurrentRequest();
+
         new Env( $env, $debug );
+        new Log( $this->logger );
 
         $this->projectDir = normalizePath( $projectDir ?? getcwd() );
         $this->cacheDir   = normalizePath( $cacheDir ?? $this->projectDir . '/var/cache' );

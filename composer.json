@@ -23,9 +23,10 @@
     "php": ">=8.2",
     "roave/security-advisories": "dev-latest",
     "northrook/core": "dev-main",
+    "northrook/logger": "dev-main",
+    "symfony/http-kernel": "@stable",
     "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
-    "symfony/deprecation-contracts": "@stable",
-    "symfony/http-kernel": "^7.1"
+    "symfony/deprecation-contracts": "@stable"
   }
 }
