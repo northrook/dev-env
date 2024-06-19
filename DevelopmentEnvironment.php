@@ -8,16 +8,13 @@ declare( strict_types = 1 );
 
 namespace Northrook;
 
+use Northrook\Logger\Log;
 use Northrook\Core\Env;
 use Northrook\Core\Trait\PropertyAccessor;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
-use Symfony\Component\ErrorHandler\BufferingLogger;
+use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Symfony\Component\ErrorHandler\Debug;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Psr\Log\{LoggerInterface, NullLogger};
 use function Northrook\Core\Function\normalizePath;
-use Northrook\Logger\Log;
 
 /**
  * @property-read AssetManager   $assetManager
@@ -26,6 +23,37 @@ use Northrook\Logger\Log;
  */
 final class DevelopmentEnvironment
 {
+
+    private const STYLESHEET = <<<CSS
+        body {
+            font-family: sans-serif;
+            color: #e6f2ff;
+            background-color: #1f2937;
+        }
+        pre.sf-dump,
+        pre.sf-dump * {
+            font: unset ;
+        }
+        body pre.sf-dump {
+            background-color: #15191e80;
+            font-size: 15px;
+            letter-spacing: .05ch;
+            line-height: 1.5;
+            font-family: "Dev Workstation", monospace !important;
+        }
+        body pre.sf-dump .sf-dump-public {
+            color: #ffffff;
+        }
+        body pre.sf-dump .sf-dump-ellipsis {
+            direction: rtl;
+            max-width: 35vw;
+        }
+        body xmp, body pre {
+            max-width: 100%;
+            white-space: pre-wrap;
+        }
+        CSS;
+
 
     public static bool $dumpOnExit = true;
 
@@ -97,12 +125,7 @@ final class DevelopmentEnvironment
         }
 
         if ( $this->echoStyles ) {
-            try {
-                echo '<style>' . file_get_contents( __DIR__ . '/assets/stylesheet.css' ) . '</style>';
-            }
-            catch ( \Exception $exception ) {
-                $this->logger->error( $exception->getMessage() );
-            }
+            echo '<style>' . DevelopmentEnvironment::STYLESHEET . '</style>';
         }
     }
 
