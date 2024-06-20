@@ -113,7 +113,7 @@ final class DevelopmentEnvironment
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
         new Env( $env, $debug );
-        new Log( $this->logger );
+        Log::setLogger( $this->logger );
 
         $this->projectDir = normalizePath( $projectDir ?? getcwd() );
         $this->cacheDir   = normalizePath( $cacheDir ?? $this->projectDir . '/var/cache' );
