@@ -8,7 +8,7 @@ declare( strict_types = 1 );
 
 namespace Northrook;
 
-use Northrook\Logger\Log;
+use Northrook\Logger\{Log, Output};
 use Northrook\Core\Env;
 use Northrook\Core\Trait\PropertyAccessor;
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
@@ -51,56 +51,6 @@ final class DevelopmentEnvironment
         body xmp, body pre {
             max-width: 100%;
             white-space: pre-wrap;
-        }
-
-
-        body pre.log-dump { 
-            display: grid;
-            white-space: pre;
-            padding: 5px;
-            overflow: initial !important;
-             color: #fefefe;
-            background-color: #15191e80;
-            font-size: 15px;
-            letter-spacing: .05ch;
-            line-height: 1.5;
-            font-family: "Dev Workstation", monospace !important;
-        }
-        
-        body pre.log-dump .log-level.info {
-            color: lightgreen;
-        }        
-        
-        body pre.log-dump .log-level.debug {
-            color: #e6f2ff;
-        }
-        
-        body pre.log-dump .log-level.notice {
-            color: #1299da;
-        }
-        
-        body pre.log-dump .log-level.warning {
-            color: #ffb700;
-        }
-        
-        body pre.log-dump .log-level.error {
-            color: #ff0000;
-        }
-        
-        body pre.log-dump .log-level.critical {
-            color: #ff0000;
-        }
-        
-        body pre.log-dump .log-level.alert {
-            color: #ff0000;
-        }
-        
-        body pre.log-dump .log-level.emergency {
-            color: #ff0000;
-        }
-        
-        body pre.log-dump .log-precision {
-            color: #a2b3ef;
         }
         CSS;
 
@@ -150,25 +100,7 @@ final class DevelopmentEnvironment
                         dump( $this );
                     }
 
-                    if ( $logs = $this->logger->cleanLogs( true ) ) {
-                        $output = [];
-                        foreach ( $logs as $log ) {
-
-                            $precision = $log[ 2 ][ 'precision' ][ 'offsetMs' ] ?? null;
-
-                            $output[] = '<div class="log-entry">' . implode(
-                                    ' ', array_filter(
-                                    [
-                                        "[<span class=\"log-level {$log[ 0 ]}\">" . $log[ 0 ] . "</span>]",
-                                        $precision ? '[<span class="log-precision">' . $precision . '</span>]' : null,
-                                        '<span class="log-message">' . $log[ 1 ] . '</span>',
-                                    ],
-                                ),
-                                ) . '</div>';
-
-                        }
-                        echo '<pre class="log-dump">' . implode( "\n", $output ) . '</pre>';
-                    }
+                    Output::dump( $this->logger );
                 },
             );
             Debug::enable();
