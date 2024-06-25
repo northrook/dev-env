@@ -20,9 +20,12 @@ use function Northrook\Core\Function\normalizePath;
  * @property-read AssetManager   $assetManager
  * @property-read CacheManager   $cacheManager
  * @property-read ContentManager $contentManager
+ * @property bool                $dumpOnExit [true]
  */
 final class DevelopmentEnvironment
 {
+
+    use PropertyAccessor;
 
     private const STYLESHEET = <<<CSS
         body {
@@ -111,7 +114,8 @@ final class DevelopmentEnvironment
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
         new Env( $env, $debug );
-        Log::setLogger( $this->logger, true );
+
+        Log::setLogger( $this->logger );
 
         $this->projectDir = normalizePath( $projectDir ?? getcwd() );
         $this->cacheDir   = normalizePath( $cacheDir ?? $this->projectDir . '/var/cache' );
@@ -155,14 +159,15 @@ final class DevelopmentEnvironment
      * @throws \LogicException
      */
     public function __set( string $name, mixed $value ) {
+
+        if ( $name === 'dumpOnExit' && is_bool( $value ) ) {
+            $this::$dumpOnExit = $value;
+            return;
+        }
+
         throw new \LogicException(
             "Cannot set property '$name', " . $this::class . " does not allow setting arbitrary properties.",
         );
-    }
-
-    public function dumpOnExit( bool $bool = true ) : DevelopmentEnvironment {
-        $this::$dumpOnExit = $bool;
-        return $this;
     }
 
     public function set( $property ) : DevelopmentEnvironment {
