@@ -60,6 +60,8 @@ final class DevelopmentEnvironment
 
     public static bool $dumpOnExit = true;
 
+    private bool $echoedDocument = false;
+
     protected readonly CacheManager   $cacheManager;
     protected readonly AssetManager   $assetManager;
     protected readonly ContentManager $contentManager;
@@ -104,6 +106,10 @@ final class DevelopmentEnvironment
                     }
 
                     Output::dump( $this->logger );
+
+                    if ( $this->echoedDocument ) {
+                        echo '</html>';
+                    }
                 },
             );
             Debug::enable();
@@ -168,6 +174,43 @@ final class DevelopmentEnvironment
         throw new \LogicException(
             "Cannot set property '$name', " . $this::class . " does not allow setting arbitrary properties.",
         );
+    }
+
+    public function document(
+        ?string        $title = null,
+        string | array $styles = [],
+        string | array $scripts = [],
+        string         $locale = 'en',
+    ) {
+        $title  ??= $this->title;
+        $styles = is_string( $styles ) ? [ $styles ] : $styles;
+
+        foreach ( $styles as $key => $style ) {
+            $styles[$key] = "<style>{$style}</style>";
+        }
+        $styles = implode( "\n", $styles );
+
+        $scripts = is_string( $scripts ) ? [ $scripts ] : $scripts;
+
+        foreach ( $scripts as $key => $script ) {
+            $script[$key] = "<script>{$script}</script>";
+        }
+        $scripts = implode( "\n", $scripts );
+
+        echo <<<DOCUMENT
+        <!DOCTYPE html>
+        <html lang="$locale">
+            <head>
+                <title>$title</title>
+                $styles
+                $scripts
+            </head>
+        DOCUMENT;
+
+
+
+        $this->echoedDocument = true;
+
     }
 
     public function set( $property ) : DevelopmentEnvironment {
