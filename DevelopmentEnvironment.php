@@ -14,6 +14,7 @@ use Northrook\Core\Trait\PropertyAccessor;
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Symfony\Component\ErrorHandler\Debug;
 use Psr\Log\{LoggerInterface, NullLogger};
+use Symfony\Component\Stopwatch\Stopwatch;
 use function Northrook\Core\Function\normalizePath;
 
 /**
@@ -72,18 +73,21 @@ final class DevelopmentEnvironment
     public readonly RequestStack    $requestStack;
     public readonly Request         $currentRequest;
     public readonly LoggerInterface $logger;
+    public readonly Stopwatch       $stopwatch;
 
     /**
      * @param null|string       $title
      * @param string            $env  = ['dev', 'prod', 'staging'][$any]
      * @param bool              $debug
-     * @param null|string       $cacheDir
      * @param null|string       $projectDir
+     * @param null|string       $cacheDir
+     * @param ?RequestStack     $requestStack
+     * @param ?LoggerInterface  $logger
+     * @param null|Stopwatch    $stopwatch
      * @param bool              $errorHandler
      * @param bool              $echoTitle
      * @param bool              $echoStyles
-     * @param ?LoggerInterface  $logger
-     * @param ?RequestStack     $requestStack
+     *
      */
     public function __construct(
         ?string          $title = null,
@@ -91,18 +95,24 @@ final class DevelopmentEnvironment
         bool             $debug = true,
         ?string          $projectDir = null,
         ?string          $cacheDir = null,
-        ?LoggerInterface $logger = null,
         ?RequestStack    $requestStack = null,
+        ?LoggerInterface $logger = null,
+        ?Stopwatch       $stopwatch = null,
         public bool      $errorHandler = true,
         public bool      $echoTitle = true,
         public bool      $echoStyles = true,
     ) {
+        $this->stopwatch ??= new Stopwatch();
+        $this->stopwatch->start( 'app', 'dev-env' );
 
         if ( $this->errorHandler ) {
             register_shutdown_function(
                 function () {
                     if ( $this::$dumpOnExit ) {
                         dump( $this );
+                        $event    = (string) $this->stopwatch->stop( 'app' );
+                        $rendered = str_replace( 'dev-env/app', $this->title, $event, );
+                        echo "<script>console.log( '$rendered' )</script>";
                     }
 
                     Output::dump( $this->logger );
@@ -128,17 +138,12 @@ final class DevelopmentEnvironment
 
         $this->title = $title ?? $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment';
 
-        if ( $this->echoTitle ) {
-            $this->echoTitle();
-        }
-
-        if ( $this->echoStyles ) {
-            echo '<style>' . DevelopmentEnvironment::STYLESHEET . '</style>';
-        }
     }
 
 
-    public function __get( string $property ) {
+    public function __get(
+        string $property,
+    ) {
 
         return match ( $property ) {
             'cacheManager'   => $this->cacheManager ??= $this->newCacheManager(),
@@ -155,7 +160,9 @@ final class DevelopmentEnvironment
      *
      * @return bool
      */
-    public function __isset( string $property ) : bool {
+    public function __isset(
+        string $property,
+    ) : bool {
         return isset( $this->$property );
     }
 
@@ -164,7 +171,9 @@ final class DevelopmentEnvironment
      *
      * @throws \LogicException
      */
-    public function __set( string $name, mixed $value ) {
+    public function __set(
+        string $name, mixed $value,
+    ) {
 
         if ( $name === 'dumpOnExit' && is_bool( $value ) ) {
             $this::$dumpOnExit = $value;
@@ -181,19 +190,19 @@ final class DevelopmentEnvironment
         string | array $styles = [],
         string | array $scripts = [],
         string         $locale = 'en',
-    ) {
+    ) : void {
         $title  ??= $this->title;
         $styles = is_string( $styles ) ? [ $styles ] : $styles;
 
         foreach ( $styles as $key => $style ) {
-            $styles[$key] = "<style>{$style}</style>";
+            $styles[ $key ] = "<style>{$style}</style>";
         }
         $styles = implode( "\n", $styles );
 
         $scripts = is_string( $scripts ) ? [ $scripts ] : $scripts;
 
         foreach ( $scripts as $key => $script ) {
-            $script[$key] = "<script>{$script}</script>";
+            $script[ $key ] = "<script>{$script}</script>";
         }
         $scripts = implode( "\n", $scripts );
 
@@ -208,12 +217,23 @@ final class DevelopmentEnvironment
         DOCUMENT;
 
 
+        if ( $this->echoTitle ) {
+            echo "<div style='display: block; font-family: monospace; opacity: .5'>{$this->title}</div>";
+        }
+
+        if ( $this->echoStyles ) {
+            echo '<style>' . DevelopmentEnvironment::STYLESHEET . '</style>';
+        }
+
 
         $this->echoedDocument = true;
 
     }
 
-    public function set( $property ) : DevelopmentEnvironment {
+    public
+    function set(
+        $property,
+    ) : DevelopmentEnvironment {
         if ( is_object( $property ) ) {
             $propertyName = $property::class;
             $namespace    = strrpos( $propertyName, '\\' );
@@ -231,19 +251,18 @@ final class DevelopmentEnvironment
         return $this;
     }
 
-    private function echoTitle() : void {
-        echo "<title>{$this->title}</title>";
-        echo "<div style='display: block; font-family: monospace; opacity: .5'>{$this->title}</div>";
-    }
+    private function echoTitle() : void {}
 
 
-    private function newRequestStack() : RequestStack {
+    private
+    function newRequestStack() : RequestStack {
         $requestStack = new RequestStack();
         $requestStack->push( Request::createFromGlobals() );
         return $requestStack;
     }
 
-    private function newCacheManager() : CacheManager {
+    private
+    function newCacheManager() : CacheManager {
         return new CacheManager(
             cacheDirectory    : $this->projectDir . '/var/cache',
             manifestDirectory : $this->projectDir . '/assets',
@@ -251,7 +270,8 @@ final class DevelopmentEnvironment
         );
     }
 
-    private function newAssetManager() : AssetManager {
+    private
+    function newAssetManager() : AssetManager {
 
         if ( !isset( $this->cacheManager ) ) {
             $this->cacheManager = $this->newCacheManager();
@@ -265,7 +285,8 @@ final class DevelopmentEnvironment
         );
     }
 
-    private function newContentManager() : ContentManager {
+    private
+    function newContentManager() : ContentManager {
         return new ContentManager(
             logger : $this->logger,
         );
