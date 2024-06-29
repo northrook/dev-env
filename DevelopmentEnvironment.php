@@ -8,12 +8,14 @@ declare( strict_types = 1 );
 
 namespace Northrook;
 
+use Northrook\Debug as DelayedDumper;
 use Northrook\Logger\{Log, Output};
 use Northrook\Core\Env;
 use Northrook\Core\Trait\PropertyAccessor;
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Symfony\Component\ErrorHandler\Debug;
 use Psr\Log\{LoggerInterface, NullLogger};
+use Symfony\Component\HttpKernel\EventListener\DumpListener;
 use Symfony\Component\Stopwatch\Stopwatch;
 use function Northrook\Core\Function\normalizePath;
 
@@ -59,9 +61,9 @@ final class DevelopmentEnvironment
         CSS;
 
 
-    public static bool $dumpOnExit = true;
-
-    private bool $echoedDocument = false;
+    public static bool    $dumpOnExit     = true;
+    private DelayedDumper $dumpInventory;
+    private bool          $echoedDocument = false;
 
     protected readonly CacheManager   $cacheManager;
     protected readonly AssetManager   $assetManager;
@@ -109,7 +111,13 @@ final class DevelopmentEnvironment
             register_shutdown_function(
                 function () {
                     if ( $this::$dumpOnExit ) {
-                        dump( $this );
+
+                        $dump = ( new DelayedDumper() )->getDumpOnExit() + [ $this ];
+
+                        foreach ( $dump as $var ) {
+                            dump( $var );
+                        }
+
                         $event    = (string) $this->stopwatch->stop( 'app' );
                         $rendered = str_replace( 'dev-env/app', $this->title, $event, );
                         echo "<script>console.log( '$rendered' )</script>";
@@ -125,6 +133,7 @@ final class DevelopmentEnvironment
             Debug::enable();
         }
 
+        $this->dumpInventory  = new DelayedDumper();
         $this->logger         = $logger ?? new Logger() ?? new NullLogger();
         $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
