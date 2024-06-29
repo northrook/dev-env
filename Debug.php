@@ -14,7 +14,9 @@ final class Debug
     }
 
     public static function dumpOnExit( ...$var ) : void {
-        Debug::$dumpOnExit[] = $var;
+        foreach ( $var as $dump ) {
+            Debug::$dumpOnExit[] = $dump;
+        }
     }
 
     public static function dumpLater( string $key, ...$var ) : void {
