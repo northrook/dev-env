@@ -272,9 +272,9 @@ final class DevelopmentEnvironment
     private
     function newCacheManager() : CacheManager {
         return new CacheManager(
-            $this->projectDir . '/var/cache',
-            $this->projectDir . '/assets',
-            $this->logger,
+                     $this->projectDir . '/var/cache',
+                     $this->projectDir . '/assets',
+            logger : $this->logger,
         );
     }
 
@@ -286,16 +286,16 @@ final class DevelopmentEnvironment
         }
 
         return new AssetManager(
-            $this->projectDir . '/public',
-            $this->projectDir . '/public/assets',
-            $this->cacheManager->getAdapter( 'assetCache' ),
-            new \Northrook\Cache\ManifestCache( 'assetManager' ),
-            $this->logger,
+                     $this->projectDir . '/public',
+                     $this->projectDir . '/public/assets',
+                     $this->cacheManager->getAdapter( 'assetCache' ),
+                     new \Northrook\Cache\ManifestCache( 'assetManager' ),
+            logger : $this->logger,
         );
     }
 
     private
     function newContentManager() : ContentManager {
-        return new ContentManager( $this->logger );
+        return new ContentManager( logger : $this->logger );
     }
 }
