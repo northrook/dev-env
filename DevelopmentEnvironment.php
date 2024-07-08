@@ -8,14 +8,13 @@ declare( strict_types = 1 );
 
 namespace Northrook;
 
-use Northrook\Debug as DelayedDumper;
-use Northrook\Logger\{Log, Output};
 use Northrook\Core\Env;
 use Northrook\Core\Trait\PropertyAccessor;
-use Symfony\Component\HttpFoundation\{Request, RequestStack};
-use Symfony\Component\ErrorHandler\Debug;
+use Northrook\Debug as DelayedDumper;
+use Northrook\Logger\{Log, Output};
 use Psr\Log\{LoggerInterface, NullLogger};
-use Symfony\Component\HttpKernel\EventListener\DumpListener;
+use Symfony\Component\ErrorHandler\Debug;
+use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Symfony\Component\Stopwatch\Stopwatch;
 use function Northrook\Core\Function\normalizePath;
 
@@ -273,9 +272,9 @@ final class DevelopmentEnvironment
     private
     function newCacheManager() : CacheManager {
         return new CacheManager(
-            cacheDirectory    : $this->projectDir . '/var/cache',
-            manifestDirectory : $this->projectDir . '/assets',
-            logger            : $this->logger,
+            $this->projectDir . '/var/cache',
+            $this->projectDir . '/assets',
+            $this->logger,
         );
     }
 
@@ -287,17 +286,16 @@ final class DevelopmentEnvironment
         }
 
         return new AssetManager(
-            publicRoot   : $this->projectDir . '/public',
-            publicAssets : $this->projectDir . '/public/assets',
-            cache        : $this->cacheManager->getAdapter( 'assetCache' ),
-            manifest     : new \Northrook\Cache\ManifestCache( 'assetManager' ),
+            $this->projectDir . '/public',
+            $this->projectDir . '/public/assets',
+            $this->cacheManager->getAdapter( 'assetCache' ),
+            new \Northrook\Cache\ManifestCache( 'assetManager' ),
+            $this->logger,
         );
     }
 
     private
     function newContentManager() : ContentManager {
-        return new ContentManager(
-            logger : $this->logger,
-        );
+        return new ContentManager( $this->logger );
     }
 }
