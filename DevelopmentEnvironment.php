@@ -286,6 +286,7 @@ final class DevelopmentEnvironment
         }
 
         return new AssetManager(
+                     $this->projectDir,
                      $this->projectDir . '/assets',
                      $this->projectDir . '/public',
                      $this->projectDir . '/public/assets',
