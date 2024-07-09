@@ -1,0 +1,117 @@
+:root {
+    --max-width  : 70rem;
+    --max-height : 40rem;
+    --margin     : min(max(0.5rem, 1.5svw), 5svh);
+    --shadow     : hsla(var(--baseline-100), 0.25);
+}
+
+[theme="dark"] {
+    --shadow : transparent;
+}
+
+html {
+}
+
+body#login {
+    display         : flex;
+    justify-content : center;
+    min-height      : 100svh;
+    overflow        : hidden;
+    background      : linear-gradient(to bottom, hsla(var(--baseline-600)), hsla(var(--baseline-700)));
+    /* padding-top: min(max(1.8rem,6vh),3.05rem); */
+}
+
+body#login main {
+    position       : relative;
+    display        : flex;
+    flex-direction : row;
+    flex-grow      : 1;
+    max-width      : var(--max-width);
+    max-height     : var(--max-height);
+    min-height     : auto;
+    /* overflow: hidden; */
+    margin         : var(--margin);
+    transition     : margin 200ms ease;
+    gap            : calc(var(--margin) * 2);
+}
+
+body#login main::after {
+    content             : "";
+    position            : absolute;
+    z-index             : -1;
+    inset               : -0.5rem;
+    left                : -1rem;
+    /* background: hsla(var(--baseline-900)); */
+    background          : linear-gradient(hsla(var(--baseline-900)), hsla(var(--baseline-900)) 75%, transparent 100%);
+    background-origin   : content-box;
+    background-position : 100% 150%;
+    opacity             : 0.5;
+    transform           : scale3d(1, 1, 1);
+    border-radius       : 1.25rem;
+
+    transform-origin    : center 25%;
+    transition          : transform 200ms ease, background-position 100ms ease;
+    box-shadow          : 0 0 1.25rem -.5rem var(--shadow);
+    /* transition: opacity 200ms ease, transform 200ms ease; */
+}
+
+body#login main > section {
+    --width    : 300px;
+    min-width  : var(--width, 300px);
+    transition : min-width 200ms ease;
+    flex       : 1 1 420px;
+}
+
+body#login main > aside {
+    flex       : 1 1 auto;
+    /* background-color: red; */
+    transition : visibility 200ms ease;
+}
+
+body#login h1 {
+    font-size : var(--font-size-h2);
+}
+
+body aside > .image {
+    position   : relative;
+    margin     : 0;
+    padding    : 0;
+    overflow   : clip;
+    box-shadow : 1px 1px 1vw 1px var(--shadow) inset;
+}
+
+.image img {
+    position   : relative;
+    z-index    : -1;
+    display    : block;
+    block-size : auto;
+}
+
+.image.cover img {
+    object-fit      : cover;
+    min-width       : 100%;
+    min-height      : 100%;
+    max-inline-size : 100%;
+}
+
+.image.fixed img {
+    max-inline-size : 100%;
+}
+
+@media (max-width : 70rem) {
+    body#login main::after {
+        --shadow            : transparent;
+        background-position : 0% 100%;
+        transform           : scale3d(1.25, 3, 1);
+    }
+}
+
+@media (max-width : 600px) {
+    body#login main > section {
+        --width : 100%;
+    }
+
+    body#login main > aside {
+        visibility : hidden;
+    }
+}
