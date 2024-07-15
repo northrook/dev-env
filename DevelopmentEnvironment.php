@@ -16,7 +16,7 @@ use Psr\Log\{LoggerInterface, NullLogger};
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Symfony\Component\Stopwatch\Stopwatch;
-use function Northrook\Core\Function\normalizePath;
+use function Northrook\Core\normalizePath;
 
 /**
  * @property-read AssetManager   $assetManager
@@ -26,7 +26,6 @@ use function Northrook\Core\Function\normalizePath;
  */
 final class DevelopmentEnvironment
 {
-
     use PropertyAccessor;
 
     private const STYLESHEET = <<<CSS
@@ -233,13 +232,10 @@ final class DevelopmentEnvironment
             echo '<style>' . DevelopmentEnvironment::STYLESHEET . '</style>';
         }
 
-
         $this->echoedDocument = true;
-
     }
 
-    public
-    function set(
+    public function set(
         $property,
     ) : DevelopmentEnvironment {
         if ( is_object( $property ) ) {
@@ -261,16 +257,18 @@ final class DevelopmentEnvironment
 
     private function echoTitle() : void {}
 
+    public function dumpOnExit( bool $bool = true ) : self {
+        DevelopmentEnvironment::$dumpOnExit = $bool;
+        return $this;
+    }
 
-    private
-    function newRequestStack() : RequestStack {
+    private function newRequestStack() : RequestStack {
         $requestStack = new RequestStack();
         $requestStack->push( Request::createFromGlobals() );
         return $requestStack;
     }
 
-    private
-    function newCacheManager() : CacheManager {
+    private function newCacheManager() : CacheManager {
         return new CacheManager(
                      $this->projectDir . '/var/cache',
                      $this->projectDir . '/assets',
@@ -278,8 +276,7 @@ final class DevelopmentEnvironment
         );
     }
 
-    private
-    function newAssetManager() : AssetManager {
+    private function newAssetManager() : AssetManager {
 
         if ( !isset( $this->cacheManager ) ) {
             $this->cacheManager = $this->newCacheManager();
@@ -287,7 +284,7 @@ final class DevelopmentEnvironment
 
         return new AssetManager(
                      $this->projectDir,
-                     $this->projectDir . '/assets',
+                     $this->projectDir . '/var/assets',
                      $this->projectDir . '/public',
                      $this->projectDir . '/public/assets',
                      $this->cacheManager->getAdapter( 'assetCache' ),
@@ -296,8 +293,7 @@ final class DevelopmentEnvironment
         );
     }
 
-    private
-    function newContentManager() : ContentManager {
+    private function newContentManager() : ContentManager {
         return new ContentManager( logger : $this->logger );
     }
 }
