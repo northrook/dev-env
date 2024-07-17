@@ -6,6 +6,7 @@ use Northrook\Debug as Debugger;
 use Northrook\Core\Env;
 use Northrook\Core\Trait\PropertyAccessor;
 use Northrook\Core\Trait\SingletonClass;
+use Northrook\Logger\Log;
 use Northrook\Logger\Output;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,8 +84,10 @@ final class DevEnv
         $this->stopwatch = $stopwatch ?? new Stopwatch();
         $this->stopwatch->start( 'app', 'dev-env' );
 
-        $this->debugger       = new Debugger();
-        $this->logger         = $logger ?? new Logger();
+        $this->debugger = new Debugger();
+        $this->logger   = $logger ?? new Logger();
+        Log::setLogger( $this->logger );
+
         $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
@@ -92,6 +95,7 @@ final class DevEnv
         $this->parameters += [ 'title' => $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment' ];
 
         new Env( $this->parameters[ 'env' ], $this->parameters[ 'debug' ] );
+        Log::setLogger( $this->logger );
 
         foreach ( $services as $service ) {
             $this->set( $service );
