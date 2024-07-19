@@ -23,6 +23,7 @@
     "php": ">=8.2",
     "roave/security-advisories": "dev-latest",
     "northrook/core": "dev-main",
+    "northrook/functions": "dev-main",
     "northrook/logger": "dev-main",
     "symfony/http-kernel": "@stable",
     "symfony/error-handler": "@stable",

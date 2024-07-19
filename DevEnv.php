@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\ErrorHandler\Debug;
-use function Northrook\Core\getProjectRootDirectory;
-use function Northrook\Core\normalizePath;
+use function Northrook\getProjectRootDirectory;
+use function Northrook\normalizePath;
 
 /**
  * @property-read string $projectDir
