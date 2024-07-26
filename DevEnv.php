@@ -59,6 +59,7 @@ final class DevEnv
     private bool     $echoedDocument = false;
     private bool     $errorHandler   = true;
     private bool     $dumpOnExit     = false;
+    private bool     $logsExpanded   = true;
     private Debugger $debugger;
 
     private array $services   = [];
@@ -145,9 +146,11 @@ final class DevEnv
         string | array $styles = [],
         string | array $scripts = [],
         string         $locale = 'en',
+        bool           $logsOpen = true,
     ) : void {
-        $title  ??= $this->parameters[ 'title' ] ?? 'Development Environment';
-        $styles = is_string( $styles ) ? [ $styles ] : $styles;
+        $this->logsExpanded = $logsOpen;
+        $title              ??= $this->parameters[ 'title' ] ?? 'Development Environment';
+        $styles             = is_string( $styles ) ? [ $styles ] : $styles;
 
         foreach ( $styles as $key => $style ) {
             $styles[ $key ] = "<style>{$style}</style>";
@@ -202,7 +205,12 @@ final class DevEnv
                     echo "<script>console.log( '$rendered' )</script>";
                 }
 
+
+                $open = $this->logsExpanded ? 'open' : '';
+                echo "<details $open><summary>Logs</summary>";
                 Output::dump( $this->logger );
+                echo "</details>";
+
 
                 if ( $this->echoedDocument ) {
                     echo '</html>';
