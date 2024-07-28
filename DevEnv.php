@@ -11,6 +11,8 @@ use Northrook\Logger\Output;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\ErrorHandler\Debug;
 use function Northrook\getProjectRootDirectory;
@@ -91,6 +93,10 @@ final class DevEnv
 
         $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
+
+        if ( !$this->currentRequest->hasSession() ) {
+            $this->currentRequest->setSession( new Session( new MockArraySessionStorage() ) );
+        }
 
         $this->parameters = array_merge( $this->parameters, $parameters );
         $this->parameters += [ 'title' => $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment' ];
