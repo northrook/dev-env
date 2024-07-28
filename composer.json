@@ -29,6 +29,7 @@
     "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
     "symfony/deprecation-contracts": "@stable",
-    "symfony/stopwatch": "^7.1"
+    "symfony/stopwatch": "@stable",
+    "symfony/cache": "@stable"
   }
 }
