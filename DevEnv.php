@@ -19,6 +19,7 @@ use function Northrook\getProjectRootDirectory;
 use function Northrook\normalizePath;
 
 /**
+ * @property-read string $title
  * @property-read string $projectDir
  * @property-read string $varDir
  * @property-read string $cacheDir
@@ -114,6 +115,7 @@ final class DevEnv
 
     public function __get( string $property ) {
         return match ( $property ) {
+            'title'        => $this->parameters[ 'title' ],
             'env'        => $this->parameters[ 'env' ],
             'debug'      => $this->parameters[ 'debug' ],
             'projectDir' => $this->getProjectDir(),
