@@ -33,17 +33,7 @@ final class Dev
         ?LoggerInterface $logger = null,
         ?Stopwatch       $stopwatch = null,
     ) : DevEnv {
-        return self::$devEnv ??= new DevEnv(
-            $echoDocument,
-            $showLogs,
-            $dumpOnExit,
-            $errorHandler,
-            $parameters,
-            $services,
-            $requestStack,
-            $logger,
-            $stopwatch,
-        );
+        return self::$devEnv ??= new DevEnv( ... \get_defined_vars() );
     }
 
     public static function disable() : void {
