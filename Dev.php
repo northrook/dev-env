@@ -34,11 +34,15 @@ final class Dev
         ?Stopwatch       $stopwatch = null,
     ) : DevEnv {
         return self::$devEnv ??= new DevEnv(
-            $echoDocument = true,
-            $showLogs = true,
-            $dumpOnExit = false,
-            $errorHandler = true,
-            $parameters, $services, $requestStack, $logger, $stopwatch,
+            $echoDocument,
+            $showLogs,
+            $dumpOnExit,
+            $errorHandler,
+            $parameters,
+            $services,
+            $requestStack,
+            $logger,
+            $stopwatch,
         );
     }
 
