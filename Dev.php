@@ -23,13 +23,23 @@ final class Dev
     }
 
     public static function env(
+        bool             $echoDocument = true,
+        bool             $showLogs = true,
+        bool             $dumpOnExit = false,
+        bool             $errorHandler = true,
         array            $parameters = [],
         array            $services = [],
         ?RequestStack    $requestStack = null,
         ?LoggerInterface $logger = null,
         ?Stopwatch       $stopwatch = null,
     ) : DevEnv {
-        return self::$devEnv ??= new DevEnv( $parameters, $services, $requestStack, $logger, $stopwatch, );
+        return self::$devEnv ??= new DevEnv(
+            $echoDocument = true,
+            $showLogs = true,
+            $dumpOnExit = false,
+            $errorHandler = true,
+            $parameters, $services, $requestStack, $logger, $stopwatch,
+        );
     }
 
     public static function disable() : void {
@@ -38,23 +48,5 @@ final class Dev
 
     public static function enable() : void {
         self::$debug = true;
-    }
-
-    public static function getFileCacheAdapter(
-        string  $namespace = 'dev',
-        int     $defaultLifetime = 0,
-        ?string $directory = null,
-        bool    $appendOnly = false,
-    ) : PhpFilesAdapter {
-        try {
-            return new PhpFilesAdapter(
-                $namespace,
-                $defaultLifetime,
-                $directory ?? getProjectRootDirectory(),
-            );
-        }
-        catch ( CacheException $e ) {
-            throw new \LogicException( 'symfony/cache is required.' );
-        }
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare ( strict_types = 1 );
+
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
@@ -9,6 +11,8 @@ use Northrook\Core\Trait\SingletonClass;
 use Northrook\Logger\Log;
 use Northrook\Logger\Output;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
+use Symfony\Component\Cache\Exception\CacheException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -58,40 +62,76 @@ final class DevEnv
         }
         CSS;
 
-    private bool     $echoDocument   = true;
-    private bool     $echoedDocument = false;
-    private bool     $errorHandler   = true;
-    private bool     $dumpOnExit     = false;
-    private bool     $logsExpanded   = true;
+    private bool $echoedDocument = false;
+    // private bool     $echoDocument   = true;
     private Debugger $debugger;
-
-    private array $services   = [];
-    private array $parameters = [
+    private array    $services   = [];
+    private array    $parameters = [
         'env'   => Env::DEVELOPMENT,
         'debug' => true,
     ];
 
+    public bool                     $logsExpanded = true;
     public readonly RequestStack    $requestStack;
     public readonly Request         $currentRequest;
     public readonly LoggerInterface $logger;
     public readonly Stopwatch       $stopwatch;
 
     public function __construct(
-        array            $parameters = [],
-        array            $services = [],
-        ?RequestStack    $requestStack = null,
-        ?LoggerInterface $logger = null,
-        ?Stopwatch       $stopwatch = null,
+        private readonly bool $echoDocument = true,
+        public bool           $showLogs = true,
+        public bool           $dumpOnExit = false,
+        private readonly bool $errorHandler = true,
+        array                 $parameters = [],
+        array                 $services = [],
+        ?RequestStack         $requestStack = null,
+        ?LoggerInterface      $logger = null,
+        ?Stopwatch            $stopwatch = null,
     ) {
+        $this->initialize()
+             ->stopwatch( $stopwatch )
+             ->debugger( $logger )
+             ->requestStack( $requestStack );
+
+        $this->parameters = array_merge( $this->parameters, $parameters );
+        $this->parameters += [ 'title' => $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment' ];
+
+        new Env( $this->parameters[ 'env' ], $this->parameters[ 'debug' ] );
+
+        foreach ( $services as $service ) {
+            $this->set( $service );
+        }
+
+        if ( $this->echoDocument ) {
+            $this->document();
+        }
+
+        $this->debugHandler();
+        $this::$instance = $this;
+    }
+
+    private function initialize() : self {
         $this->instantiationCheck();
+        return $this;
+    }
+
+    private function stopwatch( ?Stopwatch $stopwatch, ) : self {
 
         $this->stopwatch = $stopwatch ?? new Stopwatch();
         $this->stopwatch->start( 'app', 'dev-env' );
+        return $this;
+    }
+
+    private function debugger( ?LoggerInterface $logger ) : self {
 
         $this->debugger = new Debugger();
-        $this->logger   = $logger ?? new Logger();
-        Log::setLogger( $this->logger );
 
+        $this->logger = $logger ?? new Logger();
+        Log::setLogger( $this->logger );
+        return $this;
+    }
+
+    private function requestStack( ?RequestStack $requestStack ) : self {
         $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
@@ -99,23 +139,12 @@ final class DevEnv
             $this->currentRequest->setSession( new Session( new MockArraySessionStorage() ) );
         }
 
-        $this->parameters = array_merge( $this->parameters, $parameters );
-        $this->parameters += [ 'title' => $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment' ];
-
-        new Env( $this->parameters[ 'env' ], $this->parameters[ 'debug' ] );
-        Log::setLogger( $this->logger );
-
-        foreach ( $services as $service ) {
-            $this->set( $service );
-        }
-
-        $this->debugHandler();
-        $this::$instance = $this;
+        return $this;
     }
 
     public function __get( string $property ) {
         return match ( $property ) {
-            'title'        => $this->parameters[ 'title' ],
+            'title'      => $this->parameters[ 'title' ],
             'env'        => $this->parameters[ 'env' ],
             'debug'      => $this->parameters[ 'debug' ],
             'projectDir' => $this->getProjectDir(),
@@ -158,38 +187,26 @@ final class DevEnv
     ) : void {
         $this->logsExpanded = $logsOpen;
         $title              ??= $this->parameters[ 'title' ] ?? 'Development Environment';
-        $styles             = is_string( $styles ) ? [ $styles ] : $styles;
 
-        foreach ( $styles as $key => $style ) {
-            $styles[ $key ] = "<style>{$style}</style>";
+        $styles               = (array) $styles;
+        $styles [ 'dev-env' ] = self::STYLESHEET;
+
+        echo '<!DOCTYPE html>' . PHP_EOL;
+        echo '<html lang="' . $locale . '">' . PHP_EOL;
+        echo "<head>" . PHP_EOL;
+        echo TAB . '<meta charset="utf-8">' . PHP_EOL;
+        echo TAB . '<title>' . $title . '</title>' . PHP_EOL;
+        if ( $styles ) {
+            foreach ( (array) $styles as $key => $style ) {
+                echo TAB . '<style>' . \preg_replace( '/\s+/', ' ', $style ) . '</style>' . PHP_EOL;
+            }
         }
-        $styles = implode( "\n", $styles );
-
-        $scripts = is_string( $scripts ) ? [ $scripts ] : $scripts;
-
-        foreach ( $scripts as $key => $script ) {
-            $script[ $key ] = "<script>{$script}</script>";
+        if ( $scripts ) {
+            foreach ( (array) $scripts as $key => $script ) {
+                echo TAB . '<script>' . \preg_replace( '/\s+/', ' ', $script ) . '</script>' . PHP_EOL;
+            }
         }
-        $scripts = implode( "\n", $scripts );
-
-        echo <<<DOCUMENT
-        <!DOCTYPE html>
-        <html lang="$locale">
-            <head>
-                <title>$title</title>
-                $styles
-                $scripts
-            </head>
-        DOCUMENT;
-
-
-        if ( $this->echoDocument ) {
-            echo "<div style='display: block; font-family: monospace; opacity: .5'>{$this->parameters['title']}</div>";
-        }
-
-        if ( $this->echoDocument ) {
-            echo '<style>' . self::STYLESHEET . '</style>';
-        }
+        echo '</head>' . PHP_EOL;
 
         $this->echoedDocument = true;
     }
@@ -214,24 +231,42 @@ final class DevEnv
                 }
 
 
-                $open = $this->logsExpanded ? 'open' : '';
-                echo "<details $open><summary>Logs</summary>";
-                Output::dump( $this->logger );
-                echo "</details>";
-
+                if ( $this->showLogs ) {
+                    $open = $this->logsExpanded ? 'open' : '';
+                    echo "<details $open><summary>Logs</summary>";
+                    Output::dump( $this->logger );
+                    echo "</details>";
+                }
 
                 if ( $this->echoedDocument ) {
-                    echo '</html>';
+                    echo PHP_EOL . '</html>';
                 }
             },
         );
         Debug::enable();
-
     }
 
     private function newRequestStack() : RequestStack {
         $requestStack = new RequestStack();
         $requestStack->push( Request::createFromGlobals() );
         return $requestStack;
+    }
+
+    public static function mockFileCacheAdapter(
+        string  $namespace = 'dev',
+        int     $defaultLifetime = 0,
+        ?string $directory = null,
+        bool    $appendOnly = false,
+    ) : PhpFilesAdapter {
+        try {
+            return new PhpFilesAdapter(
+                $namespace,
+                $defaultLifetime,
+                normalizePath( $directory ?? getProjectRootDirectory() . '/var/cache' ),
+            );
+        }
+        catch ( CacheException $e ) {
+            throw new \LogicException( 'symfony/cache is required.' );
+        }
     }
 }
