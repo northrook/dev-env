@@ -4,7 +4,7 @@ declare ( strict_types = 1 );
 
 namespace Northrook;
 
-use Northrook\Core\Trait\SingletonClass;
+use Northrook\Trait\SingletonClass;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;

@@ -5,9 +5,9 @@ declare ( strict_types = 1 );
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
-use Northrook\Core\Env;
-use Northrook\Core\Trait\PropertyAccessor;
-use Northrook\Core\Trait\SingletonClass;
+use Northrook\Env;
+use Northrook\Trait\PropertyAccessor;
+use Northrook\Trait\SingletonClass;
 use Northrook\Logger\Log;
 use Northrook\Logger\Output;
 use Psr\Log\LoggerInterface;
@@ -93,7 +93,7 @@ final class DevEnv
              ->debugger( $logger )
              ->requestStack( $requestStack );
 
-        $this->parameters = array_merge( $this->parameters, $parameters );
+        $this->parameters = \array_merge( $this->parameters, $parameters );
         $this->parameters += [ 'title' => $_SERVER[ 'HTTP_HOST' ] ?? 'Development Environment' ];
 
         new Env( $this->parameters[ 'env' ], $this->parameters[ 'debug' ] );
