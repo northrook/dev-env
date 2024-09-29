@@ -4,7 +4,8 @@ namespace Northrook;
 
 final class DANGER
 {
-    private const MISC = [
+    /** @noinspection HtmlUnknownTarget */
+    private const array MISC = [
         // Text Strings
         "<script>alert('XSS')</script>",
         "' OR '1'='1",
@@ -18,21 +19,23 @@ final class DANGER
         "<body onload=alert('XSS')>",
     ];
 
-    private const URL = [
+    /** @noinspection HtmlUnknownTarget */
+    private const array URL = [
         "http://example.com/<script>alert('XSS')</script>",
         "javascript:alert('XSS')",
-        "http://example.com/?param=<img src='x' onerror='alert(1)'>",
+        "http://example.com/?param=<img src='x' alt='xss' onerror='alert(1)'>",
         "http://example.com/?q=<script>document.location='http://badsite.com'</script>",
     ];
 
-    private const EMAIL = [
+    /** @noinspection HtmlUnknownTarget */
+    private const array EMAIL = [
         "normal@example.com",
         "test@example.com<script>alert('XSS')</script>",
-        "xss@example.com<img src='x' onerror='alert(1)'>",
+        "xss@example.com<img src='x' alt='xss'  onerror='alert(1)'>",
         "<script>alert('email')</script>@example.com",
     ];
 
-    private const SQL = [
+    private const array SQL = [
         "1; DROP TABLE users",
         "' OR '1'='1",
         "' OR '1'='1' --",
@@ -45,14 +48,14 @@ final class DANGER
         "\" OR \"\" = \"",
     ];
 
-    private const PATH = [
+    private const array PATH = [
         "../../../../etc/passwd",
         "../../../../../../../../windows/win.ini",
         "php://filter/convert.base64-encode/resource=index.php",
         "expect://ls",
     ];
 
-    private const CLI = [
+    private const array CLI = [
         "; ls -la",
         "| cat /etc/passwd",
         "`cat /etc/passwd`",
@@ -104,6 +107,6 @@ final class DANGER
             Please call ' . DANGER::class . 'enableReturningDangerousStrings() first.',
             );
         }
-        return $all ? $danger : $danger[ \rand( 0, count( $danger ) - 1 ) ];
+        return $all ? $danger : $danger[ \rand( 0, \count( $danger ) - 1 ) ];
     }
 }

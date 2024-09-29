@@ -5,22 +5,22 @@ declare ( strict_types = 1 );
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
-use Northrook\Env;
-use Northrook\Trait\PropertyAccessor;
-use Northrook\Trait\SingletonClass;
 use Northrook\Logger\Log;
 use Northrook\Logger\Output;
+use Northrook\Trait\PropertyAccessor;
+use Northrook\Trait\SingletonClass;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;
+use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Stopwatch\Stopwatch;
-use Symfony\Component\ErrorHandler\Debug;
-use function Northrook\getProjectRootDirectory;
-use function Northrook\normalizePath;
+use function String\normalizePath;
+use function Support\getProjectRootDirectory;
+use const String\TAB;
 
 /**
  * @property-read string $title
@@ -32,7 +32,7 @@ final class DevEnv
 {
     use PropertyAccessor, SingletonClass;
 
-    private const STYLESHEET = <<<CSS
+    private const string STYLESHEET = <<<CSS
         body {
             font-family: sans-serif;
             color: #e6f2ff;

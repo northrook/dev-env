@@ -8,7 +8,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Northrook\\": ""
+      "Northrook\\": "src/"
     }
   },
   "authors": [
@@ -20,7 +20,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.3",
     "roave/security-advisories": "dev-latest",
     "northrook/core": "dev-main",
     "northrook/functions": "dev-main",
