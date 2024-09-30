@@ -22,6 +22,7 @@
   "require": {
     "php": ">=8.3",
     "roave/security-advisories": "dev-latest",
+    "northrook/php-cs": "dev-main",
     "northrook/core": "dev-main",
     "northrook/logger": "dev-main",
     "symfony/http-kernel": "@stable",
@@ -31,5 +32,11 @@
     "symfony/stopwatch": "@stable",
     "symfony/cache": "@stable",
     "northrook/support": "dev-main"
-  }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/northrook/php-cs"
+    }
+  ]
 }
