@@ -23,13 +23,13 @@
     "php": ">=8.3",
     "roave/security-advisories": "dev-latest",
     "northrook/core": "dev-main",
-    "northrook/functions": "dev-main",
     "northrook/logger": "dev-main",
     "symfony/http-kernel": "@stable",
     "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
     "symfony/deprecation-contracts": "@stable",
     "symfony/stopwatch": "@stable",
-    "symfony/cache": "@stable"
+    "symfony/cache": "@stable",
+    "northrook/support": "dev-main"
   }
 }

@@ -10,6 +10,7 @@ use Northrook\Logger\Output;
 use Northrook\Trait\PropertyAccessor;
 use Northrook\Trait\SingletonClass;
 use Psr\Log\LoggerInterface;
+use Support\Normalize;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;
 use Symfony\Component\ErrorHandler\Debug;
@@ -18,9 +19,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Stopwatch\Stopwatch;
-use function String\normalizePath;
 use function Support\getProjectRootDirectory;
-use const String\TAB;
+use const Support\TAB;
 
 /**
  * @property-read string $title
@@ -33,42 +33,42 @@ final class DevEnv
     use PropertyAccessor, SingletonClass;
 
     private const string STYLESHEET = <<<CSS
-        body {
-            font-family: sans-serif;
-            color: #e6f2ff;
-            background-color: #1f2937;
-        }
-        pre.sf-dump,
-        pre.sf-dump * {
-            font: unset ;
-        }
-        body pre.sf-dump {
-            background-color: #15191e80;
-            font-size: 15px;
-            letter-spacing: .05ch;
-            line-height: 1.5;
-            font-family: "Dev Workstation", monospace !important;
-        }
-        body pre.sf-dump .sf-dump-public {
-            color: #ffffff;
-        }
-        body pre.sf-dump .sf-dump-ellipsis {
-            direction: rtl;
-            max-width: 35vw;
-        }
-        body xmp, body pre {
-            max-width: 100%;
-            white-space: pre-wrap;
-        }
-        CSS;
+                             body {
+                                 font-family: sans-serif;
+                                 color: #e6f2ff;
+                                 background-color: #1f2937;
+                             }
+                             pre.sf-dump,
+                             pre.sf-dump * {
+                                 font: unset ;
+                             }
+                             body pre.sf-dump {
+                                 background-color: #15191e80;
+                                 font-size: 15px;
+                                 letter-spacing: .05ch;
+                                 line-height: 1.5;
+                                 font-family: "Dev Workstation", monospace !important;
+                             }
+                             body pre.sf-dump .sf-dump-public {
+                                 color: #ffffff;
+                             }
+                             body pre.sf-dump .sf-dump-ellipsis {
+                                 direction: rtl;
+                                 max-width: 35vw;
+                             }
+                             body xmp, body pre {
+                                 max-width: 100%;
+                                 white-space: pre-wrap;
+                             }
+                             CSS;
 
     private bool $echoedDocument = false;
     // private bool     $echoDocument   = true;
     private Debugger $debugger;
     private array    $services   = [];
     private array    $parameters = [
-        'env'   => Env::DEVELOPMENT,
-        'debug' => true,
+            'env'   => Env::DEVELOPMENT,
+            'debug' => true,
     ];
 
     public bool                     $logsExpanded = true;
@@ -78,16 +78,17 @@ final class DevEnv
     public readonly Stopwatch       $stopwatch;
 
     public function __construct(
-        private readonly bool $echoDocument = true,
-        public bool           $showLogs = true,
-        public bool           $dumpOnExit = false,
-        private readonly bool $errorHandler = true,
-        array                 $parameters = [],
-        array                 $services = [],
-        ?RequestStack         $requestStack = null,
-        ?LoggerInterface      $logger = null,
-        ?Stopwatch            $stopwatch = null,
-    ) {
+            private readonly bool $echoDocument = true,
+            public bool           $showLogs = true,
+            public bool           $dumpOnExit = false,
+            private readonly bool $errorHandler = true,
+            array                 $parameters = [],
+            array                 $services = [],
+            ?RequestStack         $requestStack = null,
+            ?LoggerInterface      $logger = null,
+            ?Stopwatch            $stopwatch = null,
+    )
+    {
         $this->initialize()
              ->stopwatch( $stopwatch )
              ->debugger( $logger )
@@ -110,20 +111,21 @@ final class DevEnv
         $this::$instance = $this;
     }
 
-    private function initialize() : self {
+    private function initialize() : self
+    {
         $this->instantiationCheck();
         return $this;
     }
 
-    private function stopwatch( ?Stopwatch $stopwatch, ) : self {
-
+    private function stopwatch( ?Stopwatch $stopwatch ) : self
+    {
         $this->stopwatch = $stopwatch ?? new Stopwatch();
         $this->stopwatch->start( 'app', 'dev-env' );
         return $this;
     }
 
-    private function debugger( ?LoggerInterface $logger ) : self {
-
+    private function debugger( ?LoggerInterface $logger ) : self
+    {
         $this->debugger = new Debugger();
 
         $this->logger = $logger ?? new Logger();
@@ -131,7 +133,8 @@ final class DevEnv
         return $this;
     }
 
-    private function requestStack( ?RequestStack $requestStack ) : self {
+    private function requestStack( ?RequestStack $requestStack ) : self
+    {
         $this->requestStack   = $requestStack ?? $this->newRequestStack();
         $this->currentRequest = $this->requestStack->getCurrentRequest();
 
@@ -142,14 +145,17 @@ final class DevEnv
         return $this;
     }
 
-    public function __get( string $property ) {
+    public function __get( string $property )
+    {
         return match ( $property ) {
             'title'      => $this->parameters[ 'title' ],
             'env'        => $this->parameters[ 'env' ],
             'debug'      => $this->parameters[ 'debug' ],
             'projectDir' => $this->getProjectDir(),
-            'varDir'     => $this->parameters[ 'varDir' ] ??= normalizePath( $this->getProjectDir() . '/var' ),
-            'cacheDir'   => $this->parameters[ 'cacheDir' ] ??= normalizePath( $this->getProjectDir() . '/var/cache' ),
+            'varDir'     => $this->parameters[ 'varDir' ] ??= Normalize::path( $this->getProjectDir() . '/var' ),
+            'cacheDir'   => $this->parameters[ 'cacheDir' ] ??= Normalize::path(
+                    $this->getProjectDir() . '/var/cache',
+            ),
             default      => $this->parameters[ $property ] ?? $this->services[ $property ] ?? null,
         };
     }
@@ -160,31 +166,36 @@ final class DevEnv
      *
      * @return Service|null
      */
-    public function get( string $service ) : ?object {
+    public function get( string $service ) : ?object
+    {
         return $this->services[ $service ] ?? null;
     }
 
-    public function set( object $service ) : self {
+    public function set( object $service ) : self
+    {
         $this->services[ $service::class ] = $service;
         return $this;
     }
 
-    private function getProjectDir() : string {
-        return $this->parameters[ 'projectDir' ] ??= normalizePath( getProjectRootDirectory() );
+    private function getProjectDir() : string
+    {
+        return $this->parameters[ 'projectDir' ] ??= Normalize::path( getProjectRootDirectory() );
     }
 
-    public function dumpOnExit( bool $bool = true ) : self {
+    public function dumpOnExit( bool $bool = true ) : self
+    {
         $this->dumpOnExit = $bool;
         return $this;
     }
 
     public function document(
-        ?string        $title = null,
-        string | array $styles = [],
-        string | array $scripts = [],
-        string         $locale = 'en',
-        bool           $logsOpen = true,
-    ) : void {
+            ?string        $title = null,
+            string | array $styles = [],
+            string | array $scripts = [],
+            string         $locale = 'en',
+            bool           $logsOpen = true,
+    ) : void
+    {
         $this->logsExpanded = $logsOpen;
         $title              ??= $this->parameters[ 'title' ] ?? 'Development Environment';
 
@@ -211,58 +222,60 @@ final class DevEnv
         $this->echoedDocument = true;
     }
 
-    private function debugHandler() : void {
+    private function debugHandler() : void
+    {
         if ( !$this->errorHandler ) {
             return;
         }
         register_shutdown_function(
-            function () {
-                if ( $this->dumpOnExit ) {
+                function()
+                {
+                    if ( $this->dumpOnExit ) {
+                        $dump = ( new Debugger() )->getDumpOnExit() + [ $this ];
 
-                    $dump = ( new Debugger() )->getDumpOnExit() + [ $this ];
+                        foreach ( $dump as $var ) {
+                            dump( $var );
+                        }
 
-                    foreach ( $dump as $var ) {
-                        dump( $var );
+                        $event    = (string) $this->stopwatch->stop( 'app' );
+                        $rendered = str_replace( 'dev-env/app', $this->parameters[ 'title' ], $event );
+                        echo "<script>console.log( '$rendered' )</script>";
                     }
 
-                    $event    = (string) $this->stopwatch->stop( 'app' );
-                    $rendered = str_replace( 'dev-env/app', $this->parameters[ 'title' ], $event );
-                    echo "<script>console.log( '$rendered' )</script>";
-                }
+                    if ( $this->showLogs ) {
+                        $open = $this->logsExpanded ? 'open' : '';
+                        echo "<details $open><summary>Logs</summary>";
+                        Output::dump( $this->logger );
+                        echo "</details>";
+                    }
 
-
-                if ( $this->showLogs ) {
-                    $open = $this->logsExpanded ? 'open' : '';
-                    echo "<details $open><summary>Logs</summary>";
-                    Output::dump( $this->logger );
-                    echo "</details>";
-                }
-
-                if ( $this->echoedDocument ) {
-                    echo PHP_EOL . '</html>';
-                }
-            },
+                    if ( $this->echoedDocument ) {
+                        echo PHP_EOL . '</html>';
+                    }
+                },
         );
         Debug::enable();
     }
 
-    private function newRequestStack() : RequestStack {
+    private function newRequestStack() : RequestStack
+    {
         $requestStack = new RequestStack();
         $requestStack->push( Request::createFromGlobals() );
         return $requestStack;
     }
 
     public static function mockFileCacheAdapter(
-        string  $namespace = 'dev',
-        int     $defaultLifetime = 0,
-        ?string $directory = null,
-        bool    $appendOnly = false,
-    ) : PhpFilesAdapter {
+            string  $namespace = 'dev',
+            int     $defaultLifetime = 0,
+            ?string $directory = null,
+            bool    $appendOnly = false,
+    ) : PhpFilesAdapter
+    {
         try {
             return new PhpFilesAdapter(
-                $namespace,
-                $defaultLifetime,
-                normalizePath( $directory ?? getProjectRootDirectory() . '/var/cache' ),
+                    $namespace,
+                    $defaultLifetime,
+                    Normalize::path( $directory ?? getProjectRootDirectory() . '/var/cache' ),
             );
         }
         catch ( CacheException $e ) {
