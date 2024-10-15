@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Stopwatch\Stopwatch;
 use function Support\getProjectRootDirectory;
 use const Support\TAB;
+use LogicException;
 
 /**
  * @property string $title
@@ -59,19 +60,19 @@ final class DevEnv
         }
         CSS;
 
-    private bool $echoedDocument    = false;
+    private bool $echoedDocument = false;
 
     // private bool     $echoDocument   = true;
     private Debugger $debugger;
 
-    private array $services         = [];
+    private array $services = [];
 
-    private array $parameters       = [
+    private array $parameters = [
         'env'   => Env::DEVELOPMENT,
         'debug' => true,
     ];
 
-    public bool $logsExpanded       = true;
+    public bool $logsExpanded = true;
 
     public readonly RequestStack $requestStack;
 
@@ -83,14 +84,14 @@ final class DevEnv
 
     public function __construct(
         private readonly bool $echoDocument = true,
-        public bool $showLogs = true,
-        public bool $dumpOnExit = false,
+        public bool           $showLogs = true,
+        public bool           $dumpOnExit = false,
         private readonly bool $errorHandler = true,
-        array $parameters = [],
-        array $services = [],
-        ?RequestStack $requestStack = null,
-        ?LoggerInterface $logger = null,
-        ?Stopwatch $stopwatch = null,
+        array                 $parameters = [],
+        array                 $services = [],
+        ?RequestStack         $requestStack = null,
+        ?LoggerInterface      $logger = null,
+        ?Stopwatch            $stopwatch = null,
     ) {
         $this->initialize()
             ->stopwatch( $stopwatch )
@@ -111,7 +112,7 @@ final class DevEnv
         }
 
         $this->debugHandler();
-        $this::$instance  = $this;
+        $this::$instance = $this;
     }
 
     private function initialize() : self
@@ -131,7 +132,7 @@ final class DevEnv
     {
         $this->debugger = new Debugger();
 
-        $this->logger   = $logger ?? new Logger();
+        $this->logger = $logger ?? new Logger();
         Log::setLogger( $this->logger );
         return $this;
     }
@@ -159,7 +160,7 @@ final class DevEnv
             'cacheDir'   => $this->parameters['cacheDir'] ??= Normalize::path(
                 $this->getProjectDir().'/var/cache',
             ),
-            default      => $this->parameters[$property] ?? $this->services[$property] ?? null,
+            default => $this->parameters[$property] ?? $this->services[$property] ?? null,
         };
     }
 
@@ -192,17 +193,17 @@ final class DevEnv
     }
 
     public function document(
-        ?string $title = null,
+        ?string      $title = null,
         string|array $styles = [],
         string|array $scripts = [],
-        string $locale = 'en',
-        bool $logsOpen = true,
+        string       $locale = 'en',
+        bool         $logsOpen = true,
     ) : void {
-        $this->logsExpanded   = $logsOpen;
+        $this->logsExpanded = $logsOpen;
         $title ??= $this->parameters['title'] ?? 'Development Environment';
 
-        $styles               = (array) $styles;
-        $styles['dev-env']    = self::STYLESHEET;
+        $styles            = (array) $styles;
+        $styles['dev-env'] = self::STYLESHEET;
 
         echo '<!DOCTYPE html>'.PHP_EOL;
         echo '<html lang="'.$locale.'">'.PHP_EOL;
@@ -229,17 +230,17 @@ final class DevEnv
         if ( ! $this->errorHandler ) {
             return;
         }
-        register_shutdown_function(
+        \register_shutdown_function(
             function() {
                 if ( $this->dumpOnExit ) {
-                    $dump     = ( new Debugger() )->getDumpOnExit() + [$this];
+                    $dump = ( new Debugger() )->getDumpOnExit() + [$this];
 
                     foreach ( $dump as $var ) {
                         dump( $var );
                     }
 
                     $event    = (string) $this->stopwatch->stop( 'app' );
-                    $rendered = str_replace( 'dev-env/app', $this->parameters['title'], $event );
+                    $rendered = \str_replace( 'dev-env/app', $this->parameters['title'], $event );
                     echo "<script>console.log( '{$rendered}' )</script>";
                 }
 
@@ -266,10 +267,10 @@ final class DevEnv
     }
 
     public static function mockFileCacheAdapter(
-        string $namespace = 'dev',
-        int $defaultLifetime = 0,
+        string  $namespace = 'dev',
+        int     $defaultLifetime = 0,
         ?string $directory = null,
-        bool $appendOnly = false,
+        bool    $appendOnly = false,
     ) : PhpFilesAdapter {
         try {
             return new PhpFilesAdapter(
@@ -279,7 +280,7 @@ final class DevEnv
             );
         }
         catch ( CacheException $e ) {
-            throw new \LogicException( 'symfony/cache is required.' );
+            throw new LogicException( 'symfony/cache is required.' );
         }
     }
 }

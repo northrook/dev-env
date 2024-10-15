@@ -31,8 +31,7 @@
     "symfony/stopwatch": "@stable",
     "symfony/cache": "@stable",
     "northrook/support": "dev-main",
-    "northrook/php-cs": "dev-main"
-  },
-  "require-dev": {
+    "northrook/php-cs": "dev-main",
+    "jetbrains/phpstorm-attributes": "^1.1"
   }
 }
