@@ -32,6 +32,10 @@
     "symfony/cache": "@stable",
     "northrook/support": "dev-main",
     "northrook/php-cs": "dev-main",
-    "jetbrains/phpstorm-attributes": "^1.1"
+    "jetbrains/phpstorm-attributes": "^1.1",
+    "phpstan/phpstan": "@stable"
+  },
+  "scripts": {
+    "phpstan": "vendor/bin/phpstan analyse"
   }
 }
