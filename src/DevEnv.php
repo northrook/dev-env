@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
+use Northrook\Interface\Singleton;
 use Northrook\Trait\{PropertyAccessor, SingletonClass};
 use Northrook\Logger\{Log, Output};
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
@@ -26,7 +27,7 @@ use LogicException;
  * @property string $varDir
  * @property string $cacheDir
  */
-final class DevEnv
+final class DevEnv implements Singleton
 {
     use PropertyAccessor, SingletonClass;
 
@@ -93,6 +94,10 @@ final class DevEnv
         ?LoggerInterface      $logger = null,
         ?Stopwatch            $stopwatch = null,
     ) {
+        if ( $this->instantiationCheck() ) {
+            return;
+        }
+
         $this->initialize()
             ->stopwatch( $stopwatch )
             ->debugger( $logger )
@@ -112,7 +117,8 @@ final class DevEnv
         }
 
         $this->debugHandler();
-        $this::$instance = $this;
+
+        $this->instantiateSingleton();
     }
 
     private function initialize() : self
