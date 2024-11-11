@@ -22,7 +22,6 @@
   "require": {
     "php": ">=8.3",
     "roave/security-advisories": "dev-latest",
-    "northrook/core": "dev-main",
     "northrook/logger": "dev-main",
     "symfony/http-kernel": "@stable",
     "symfony/error-handler": "@stable",

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
-use Northrook\Interface\Singleton;
-use Northrook\Trait\{PropertyAccessor, SingletonClass};
+use Interface\Singleton;
 use Northrook\Logger\{Log, Output};
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Psr\Log\LoggerInterface;
-use Support\Normalize;
+use Support\{Normalize, PropertyAccessor, SingletonClass};
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;
 use Symfony\Component\ErrorHandler\Debug;
@@ -49,7 +48,7 @@ final class DevEnv implements Singleton
             font-family: "Dev Workstation", monospace !important;
         }
         body pre.sf-dump .sf-dump-public {
-            color: #ffffff;
+            color: #fff;
         }
         body pre.sf-dump .sf-dump-ellipsis {
             direction: rtl;
@@ -69,7 +68,7 @@ final class DevEnv implements Singleton
     private array $services = [];
 
     private array $parameters = [
-        'env'   => Env::DEVELOPMENT,
+        'env'   => 'dev',
         'debug' => true,
     ];
 
@@ -105,8 +104,6 @@ final class DevEnv implements Singleton
 
         $this->parameters = \array_merge( $this->parameters, $parameters );
         $this->parameters += ['title' => $_SERVER['HTTP_HOST'] ?? 'Development Environment'];
-
-        new Env( $this->parameters['env'], $this->parameters['debug'] );
 
         foreach ( $services as $service ) {
             $this->set( $service );

@@ -6,7 +6,7 @@ final class Debug
 {
     private static array $dumpOnExit = [];
 
-    private static array $dumpLater  = [];
+    private static array $dumpLater = [];
 
     public function __construct() {}
 
