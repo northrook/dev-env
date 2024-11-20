@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Northrook;
 
 use Northrook\Debug as Debugger;
-use Interface\Singleton;
+use \Interface\{SingletonClass, Singleton};
 use Northrook\Logger\{Log, Output};
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
 use Psr\Log\LoggerInterface;
-use Support\{Normalize, PropertyAccessor, SingletonClass};
+use Support\{Normalize, PropertyAccessor};
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;
 use Symfony\Component\ErrorHandler\Debug;

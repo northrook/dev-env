@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Northrook;
 
 final class Debug
@@ -8,7 +10,9 @@ final class Debug
 
     private static array $dumpLater = [];
 
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     public function getDumpOnExit() : array
     {
@@ -42,6 +46,5 @@ final class Debug
         if ( $dump ) {
             dump( $dump );
         }
-
     }
 }
