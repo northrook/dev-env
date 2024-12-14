@@ -128,6 +128,7 @@ final class DevEnv implements Singleton
     {
         $this->stopwatch = $stopwatch ?? new Stopwatch();
         $this->stopwatch->start( 'app', 'dev-env' );
+        new Clerk( $this->stopwatch );
         return $this;
     }
 

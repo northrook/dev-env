@@ -6,32 +6,48 @@ namespace Northrook;
 
 final class Debug
 {
+    /** @var list<mixed> */
     private static array $dumpOnExit = [];
 
+    /** @var array<string, mixed> */
     private static array $dumpLater = [];
 
     public function __construct()
     {
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getDumpOnExit() : array
     {
         return Debug::$dumpOnExit;
     }
 
-    public static function dumpOnExit( ...$var ) : void
+    /**
+     * @param mixed ...$var
+     *
+     * @return void
+     */
+    public static function dumpOnExit( mixed ...$var ) : void
     {
         foreach ( $var as $dump ) {
             Debug::$dumpOnExit[] = $dump;
         }
     }
 
-    public static function dumpLater( string $key, ...$var ) : void
+    /**
+     * @param string $key
+     * @param mixed  ...$var
+     *
+     * @return void
+     */
+    public static function dumpLater( string $key, mixed ...$var ) : void
     {
         Debug::$dumpLater[$key] = $var;
     }
 
-    public static function dump( ?string $key ) : void
+    public static function dump( ?string $key = null ) : void
     {
         if ( ! $key ) {
             foreach ( Debug::$dumpLater as $var ) {

@@ -32,7 +32,8 @@
     "northrook/support": "dev-main",
     "northrook/php-cs": "dev-main",
     "jetbrains/phpstorm-attributes": "^1.1",
-    "phpstan/phpstan": "@stable"
+    "phpstan/phpstan": "@stable",
+    "northrook/clerk": "dev-main"
   },
   "scripts": {
     "phpstan": "vendor/bin/phpstan analyse"
