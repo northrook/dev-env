@@ -48,7 +48,7 @@ final class DevEnv implements Singleton
             font-family: "Dev Workstation", monospace !important;
         }
         body pre.sf-dump .sf-dump-public {
-            color: #fff;
+            color: #ffffff;
         }
         body pre.sf-dump .sf-dump-ellipsis {
             direction: rtl;
@@ -101,6 +101,8 @@ final class DevEnv implements Singleton
             ->stopwatch( $stopwatch )
             ->debugger( $logger )
             ->requestStack( $requestStack );
+
+        new \Support\Filesystem( logger : $this->logger );
 
         $this->parameters = \array_merge( $this->parameters, $parameters );
         $this->parameters += ['title' => $_SERVER['HTTP_HOST'] ?? 'Development Environment'];
