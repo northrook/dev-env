@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Northrook;
 
-use Northrook\Debug as Debugger;
 use \Interface\{SingletonClass, Singleton};
 use Northrook\Logger\{Log, Output};
 use Symfony\Component\HttpFoundation\{Request, RequestStack};
@@ -12,7 +11,6 @@ use Psr\Log\LoggerInterface;
 use Support\{Normalize, PropertyAccessor};
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Exception\CacheException;
-use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -63,7 +61,7 @@ final class DevEnv implements Singleton
     private bool $echoedDocument = false;
 
     // private bool     $echoDocument   = true;
-    private Debugger $debugger;
+    private Debug $debugger;
 
     private array $services = [];
 
@@ -136,7 +134,7 @@ final class DevEnv implements Singleton
 
     private function debugger( ?LoggerInterface $logger ) : self
     {
-        $this->debugger = new Debugger();
+        $this->debugger = new Debug();
 
         $this->logger = $logger ?? new Logger();
         Log::setLogger( $this->logger );
@@ -239,7 +237,7 @@ final class DevEnv implements Singleton
         \register_shutdown_function(
             function() {
                 if ( $this->dumpOnExit ) {
-                    $dump = ( new Debugger() )->getDumpOnExit() + [$this];
+                    $dump = ( new Debug() )->getDumpOnExit() + [$this];
 
                     foreach ( $dump as $var ) {
                         dump( $var );
@@ -262,7 +260,7 @@ final class DevEnv implements Singleton
                 }
             },
         );
-        Debug::enable();
+        Debugger::enable();
     }
 
     private function newRequestStack() : RequestStack

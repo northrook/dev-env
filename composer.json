@@ -24,7 +24,6 @@
     "roave/security-advisories": "dev-latest",
     "northrook/logger": "dev-main",
     "symfony/http-kernel": "@stable",
-    "symfony/error-handler": "@stable",
     "symfony/var-dumper": "@stable",
     "symfony/deprecation-contracts": "@stable",
     "symfony/stopwatch": "@stable",
